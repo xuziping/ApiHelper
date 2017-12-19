@@ -1,3 +1,9 @@
+/target/*
+/.idea/*
+autoApiDoc.properties
+apiHelper.properties
+/__autoAPI/*
+
 # Compiled class file
 *.class
 
