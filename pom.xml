@@ -33,7 +33,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.xuzp.apidoc.core.ApiDocGenerator</mainClass>
+                            <mainClass>com.xuzp.apihelper.core.MainGenerator</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
