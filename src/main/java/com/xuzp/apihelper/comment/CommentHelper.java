@@ -134,8 +134,7 @@ public class CommentHelper {
     }
 
     private static String getCommentContent(String content) {
-        if(StringUtils.isEmpty(content) || content.trim().startsWith(Constants.COMMENT_MARK)) {
-            // 略过之前的apidoc注释
+        if(StringUtils.isEmpty(content)) {
             return "";
         }
         String[] lines = content.split("\r\n");
@@ -144,7 +143,7 @@ public class CommentHelper {
         }
         StringBuilder sb = new StringBuilder();
         for(String line : lines) {
-            line = line.replaceFirst("\\*", "").replaceAll("<[.[^>]]*>","").trim();
+            line = line.replaceAll("\\*", "").replaceAll("<[.[^>]]*>","").trim();
             if (line.startsWith("@")) {
                 // 忽略所有 @ 之后的注释
                 break;
