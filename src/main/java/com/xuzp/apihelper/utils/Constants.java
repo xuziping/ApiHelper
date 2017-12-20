@@ -42,14 +42,14 @@ public interface Constants {
     String DEFAULT_MODULE_NAME  = "new_module";
     String DEFAULT_REQUEST_URL = "http://127.0.0.1:8080";
     String DEFAULT_OUTPUT_FOLDER = "__autoAPI";
-    String API_DOC_FOLDER = "apihelper";
+    String API_DOC_FOLDER = "apidoc";
     String POSTMAN_FOLDER = "postman";
     String TEXT_FILE_SUFFIX = ".txt";
     String JSON_FILE_SUFFIX = ".json";
     /**
      * Property Area
      */
-    String PROPERTY_FILE = "autoApiDoc.properties";
+    String PROPERTY_FILE = "apiHelper.properties";
     String COMMENT_PATH = "commentPath";
     String OUTPUT_PATH = "outputPath";
     String CLASS_PATH = "classPath";

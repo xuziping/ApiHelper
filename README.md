@@ -4,44 +4,90 @@
 ----------
 Generates raw comments for ApiDoc to parse and generate the API documents.
 
-
 ## Usage ##
 
-Please make sure that you have installed **ApiDoc** tool.  If you don't know how to use it, please refer to [here](https://github.com/apidoc/apidoc).
+1. Please make sure that you have installed **ApiDoc** tool.  If you don't know how to use it, please refer to [here](https://github.com/apidoc/apidoc).
 
-When ApiDoc is ready, please download the Jar file from this directly, and then create a property file called "*autoApiDoc.properties*". Please set necessary properties:
-    
-    # This path is to parse the code comments from service interfaces/request parameters/DTO. 
-	# It supports more than one path, please split it by ';'
-    # NOTICE: You could not set this property, and program would take "$modulePath/src/main/java" by default.
+        1.  Install nodejs: http://nodejs.cn/download
+        2.  Install apidoc: npm install -g apidoc 
+
+2. When ApiDoc is ready, please  create a property file called "*apiHelper.properties*" and set necessary properties. Please refer to the *Configuration* part.
+
+3. After set the properties, you could double click **runApiHelper.bat** directly, it would generate __autoAPI. Of course, you could run it manually as well:
+
+	    # generate temp files： __autoAPI/apidoc 和 __autoAPI/postman 
+		java -jar ApiHelper.jar 
+	 
+		# generate final Api Documents： final目录
+	    apidoc -i __autoAPI/apidoc -o final/ -f ".txt" 
+
+4. Import APIs into Postman
+       
+		Open Postman tool and click the Import button，please choose __autoAPI/postman/postman.json to upload.
+
+
+## Configuration ##
+ 
+	# Necessary setting
+    # Please set your project/module home directory, and it would be great when "$modulePath/src/main/java" and "$modulePath/target/classes" folders exist.
+    modulePath=D:/workspace/tcc
+   
+	# Optional setting
+    # This path is to parse code comments. 
+	# It supports more than one path, please split by ';'
+    # NOTICE: Program would add "$modulePath/src/main/java" by default.
     commentPath=D:/workspace/tcc/service;D:/workspace/tcc/dto
     
+	# Optional setting
     # Output directory
-    # NOTICE: You could not set this property, and program would take "./apidoc" by default.
-    outputPath=./apidoc
+    # NOTICE: Program would use "__autoAPI" by default.
+    outputPath=__autoAPI
     
-    # Please add your class path and the JARs path here.
+	# Optional setting
+    # Please add your class folder path and the JAR file path here. 
     # It supports more than one path, please split it by ';'
-    # NOTICE: You could not set this property if your module is undependent. The program would add "$modulePath/target/classes" by default.  
+    # NOTICE: The program would add "$modulePath/target/classes" by default.  
     classPath=D:/workspace/tcc/target/classes
     
+	# Optional setting
     # All the interface/methods which are implemented "RequestMapping" interface/methods under this folder will generate comments
-    # It would work for the sub-folders recursively.
-    # NOTICE: You could not set this property, and program would take "$modulePath/src/main/java" by default.
+    # It works for the sub-folders recursively.
+    # NOTICE: Program would add "$modulePath/src/main/java" by default.
     servicePath=D:/workspace/tcc/service
 
-    # If you don't want to set more properties like servicePath/commentPath, please feel free to use this property. This is the main work directory, and please make sure that "src/main/java" and "target/classes" folders are under this path.
+	# Optional setting
+    # NOTICE: Program would use "http://127.0.0.1:8080" by default.		
+	requestURL=http://www.tcc.com
+
+    # Optional setting
+	# It is the class name of the pagable container class.
+	# NOTICE: Program would use "Page" by default.		
+	pagableClassName=Page
+
+
+
+Here are some examples:
+
+	# Example
     modulePath=D:/workspace/tcc
+	classPath=D:/repository/xxx.jar;D:/project2/target/classes
 
-When you finish the above settings, please run the jar or run the bat script：
+	# Example
+    commentPath=D:/workspace/tcc
+	servicePath=D:/workspace/tcc/service
+	classPath=D:/repository/xxx.jar;D:/project2/target/classes
 
-    java -jar AutoGenerateApiDoc.jar
+	# Example
+    modulePath=D:/workspace/tcc
+	classPath=D:/repository/xxx.jar;D:/project2/target/classes
+	pagableClassName=PageContainer
+	requestURL=http://localhost:8070	
 
-Finally, you will get some text files. Please run ApiDoc to generate the final documents:
-
-    apidoc -i apidoc -o final/ -f ".txt"
-
-Of course, you could double click AutoGenerateApiDoc.bat, you will combine the above two steps into one. But if you have problem, please edit it direclty.   
+	# Example
+    modulePath=D:/workspace/tcc
+ 	commentPath=D:/workspace/abc;D:/workspace/edf
+	servicePath=D:/workspace/tcc/service
+	classPath=D:/repository/xxx.jar;D:/project2/target/classes
 
 
 ## About how to write comments in Java code ##

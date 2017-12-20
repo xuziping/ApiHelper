@@ -195,6 +195,7 @@ public class CommentHelper {
             }
         } catch (Exception e) {
             log.error("获取Enum信息出错, typeName={}", typeName);
+            return "";
         }
         return "(" + sb.toString() + ")";
     }
