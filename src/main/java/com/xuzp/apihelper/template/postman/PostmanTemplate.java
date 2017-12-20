@@ -12,6 +12,7 @@ import com.xuzp.apihelper.utils.Constants;
 import com.xuzp.apihelper.utils.JsonHelper;
 import com.xuzp.apihelper.utils.UrlHelper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class PostmanTemplate {
     private PostmanRequest postmanRequest;
 
     private String moduleName;
+
+    private String apiMethod;
 
     private Map<String, CategoryItemNode> categoryItemNodeMap = Maps.newHashMap();
 
@@ -87,7 +90,6 @@ public class PostmanTemplate {
         UrlNode urlNode = new UrlNode();
         String requestURL = LoadProperties.getProperties().getRequestURL();
         String raw = String.format("%s/%s/%s", requestURL, methodApiObj.getGroup(), methodApiObj.getPath());
-        urlNode.setRaw(raw);
         UrlHelper urlHelper = new UrlHelper(requestURL);
         urlNode.setHost(urlHelper.getHostSplit());
         urlNode.setPort(urlHelper.getPort());
@@ -95,16 +97,53 @@ public class PostmanTemplate {
         String[] path = String.format("%s/%s", methodApiObj.getGroup(), methodApiObj.getPath())
                 .replaceAll("\\\\", "/").split("/");
         urlNode.setPath(Lists.newArrayList(path));
+        if (isGET()) {
+
+        }
+        urlNode.setRaw(raw);
         return urlNode;
     }
 
     private RequestNode requestNode() {
         RequestNode requestNode = new RequestNode();
-        requestNode.setUrl(urlNode());
-        requestNode.setBody(bodyNode());
-        requestNode.setHeader(header());
-        requestNode.setMethod(methodApiObj.getApiMethod().toUpperCase().substring(1, methodApiObj.getApiMethod().length() - 1));
+        requestNode.setMethod(getApiMethod());
+        switch (getApiMethod()) {
+            case Constants.PUT:
+            case Constants.POST:
+                requestNode.setUrl(urlNode());
+                requestNode.setBody(bodyNode());
+                requestNode.setHeader(header());
+                break;
+            case Constants.GET:
+                requestNode.setUrl(urlNode());
+                break;
+            case Constants.DELETE:
+            default:
+        }
         return requestNode;
+    }
+
+    private String getApiMethod(){
+        if (StringUtils.isBlank(apiMethod)) {
+            apiMethod = methodApiObj.getApiMethod().toUpperCase().substring(1, methodApiObj.getApiMethod().length() - 1);
+        }
+        return apiMethod;
+    }
+
+    private boolean isGET(){
+        return getApiMethod().equals(Constants.GET);
+    }
+
+    private boolean isPOST(){
+        return getApiMethod().equals(Constants.POST);
+    }
+
+    private boolean isPUT(){
+        return getApiMethod().equals(Constants.PUT);
+    }
+
+    private boolean isDELETE(){
+        return getApiMethod().equals(Constants.DELETE);
     }
 
     private List<Map<String, String>> header() {

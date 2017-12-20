@@ -41,7 +41,7 @@ public class LoadProperties {
             ret = true;
             log.info("配置文件加载成功：{}", apiHelperProperties);
         } catch (Exception e) {
-            log.error("解析配置文件{}出错", Constants.PROPERTY_FILE);
+            log.error("解析配置文件{}出错, 异常={}", Constants.PROPERTY_FILE, e);
         }
         return ret;
     }

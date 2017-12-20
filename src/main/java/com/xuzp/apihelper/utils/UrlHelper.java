@@ -31,6 +31,9 @@ public class UrlHelper {
     }
 
     public String getPort() {
+        if (80 == url.getPort() || -1 == url.getPort()) {
+            return null;
+        }
         return "" + url.getPort();
     }
 

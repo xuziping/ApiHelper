@@ -20,4 +20,6 @@ public class RequestNode {
     private BodyNode  body;
 
     private UrlNode url;
+
+    private String description;
 }

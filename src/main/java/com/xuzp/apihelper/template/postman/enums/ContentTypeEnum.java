@@ -16,6 +16,8 @@ public enum ContentTypeEnum {
      * FORM 类型
      */
     FORM_DATA("multipart/form-data"),
+
+    URLENCODED_FORM_DATA("application/x-www-form-urlencoded")
     ;
 
     private String value;

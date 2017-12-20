@@ -21,4 +21,6 @@ public class UrlNode {
     private String port;
 
     private List<String> path;
+
+    private List<QueryNode> query;
 }

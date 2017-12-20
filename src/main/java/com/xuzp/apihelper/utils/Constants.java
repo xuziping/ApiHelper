@@ -35,11 +35,11 @@ public interface Constants {
     String PUT_MAPPING = "PutMapping";
     String POST_MAPPING = "PostMapping";
     String DELETE_MAPPING = "DeleteMapping";
-    Set<String> REQUEST_MAPPINGS = Sets.newHashSet(REQUEST_MAPPING,POST_MAPPING,PUT_MAPPING,DELETE_MAPPING,GET_MAPPING);
+    Set<String> REQUEST_MAPPINGS = Sets.newHashSet(REQUEST_MAPPING, POST_MAPPING, PUT_MAPPING, DELETE_MAPPING, GET_MAPPING);
     String VOID = "void";
 
-    String DEFAULT_PAGABLE_CLASS_NAME  = "Page";
-    String DEFAULT_MODULE_NAME  = "new_module";
+    String DEFAULT_PAGABLE_CLASS_NAME = "Page";
+    String DEFAULT_MODULE_NAME = "new_module";
     String DEFAULT_REQUEST_URL = "http://127.0.0.1:8080";
     String DEFAULT_OUTPUT_FOLDER = "__autoAPI";
     String API_DOC_FOLDER = "apidoc";
@@ -61,7 +61,10 @@ public interface Constants {
      * Postman Area
      */
     String SCHEMA_V2_1_0 = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
-
+    String POST = "POST";
+    String PUT = "PUT";
+    String GET = "GET";
+    String DELETE = "DELETE";
 
 }
 
