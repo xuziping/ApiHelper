@@ -4,18 +4,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.xuzp.apihelper.core.MethodApiObj;
+import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.properties.LoadProperties;
 import com.xuzp.apihelper.template.apidoc.ApiDocTemplate;
 import com.xuzp.apihelper.template.postman.enums.BodyModeEnum;
 import com.xuzp.apihelper.template.postman.enums.ContentTypeEnum;
 import com.xuzp.apihelper.utils.Constants;
 import com.xuzp.apihelper.utils.JsonHelper;
+import com.xuzp.apihelper.utils.MockDataHelper;
 import com.xuzp.apihelper.utils.UrlHelper;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author XuZiPing
@@ -29,8 +31,6 @@ public class PostmanTemplate {
     private PostmanRequest postmanRequest;
 
     private String moduleName;
-
-    private String apiMethod;
 
     private Map<String, CategoryItemNode> categoryItemNodeMap = Maps.newHashMap();
 
@@ -89,7 +89,6 @@ public class PostmanTemplate {
     private UrlNode urlNode() {
         UrlNode urlNode = new UrlNode();
         String requestURL = LoadProperties.getProperties().getRequestURL();
-        String raw = String.format("%s/%s/%s", requestURL, methodApiObj.getGroup(), methodApiObj.getPath());
         UrlHelper urlHelper = new UrlHelper(requestURL);
         urlNode.setHost(urlHelper.getHostSplit());
         urlNode.setPort(urlHelper.getPort());
@@ -97,17 +96,34 @@ public class PostmanTemplate {
         String[] path = String.format("%s/%s", methodApiObj.getGroup(), methodApiObj.getPath())
                 .replaceAll("\\\\", "/").split("/");
         urlNode.setPath(Lists.newArrayList(path));
+        String raw = String.format("%s/%s/%s", requestURL, methodApiObj.getGroup(), methodApiObj.getPath());
         if (isGET()) {
-
+            if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
+                List<QueryNode> queryNodes = Lists.newArrayList();
+                for (Param param : methodApiObj.getParams()) {
+                    queryNodes.add(queryNode(param));
+                }
+                urlNode.setQuery(queryNodes);
+                raw = raw + "?" + queryNodes.stream().map(x -> x.getKey() + "=" + x.getValue())
+                        .collect(Collectors.joining("&"));
+            }
         }
         urlNode.setRaw(raw);
         return urlNode;
     }
 
+    private QueryNode queryNode(Param param) {
+        QueryNode queryNode = new QueryNode();
+        queryNode.setEquals(Boolean.TRUE);
+        queryNode.setKey(param.getName());
+        queryNode.setValue(MockDataHelper.mockValue(param));
+        return queryNode;
+    }
+
     private RequestNode requestNode() {
         RequestNode requestNode = new RequestNode();
-        requestNode.setMethod(getApiMethod());
-        switch (getApiMethod()) {
+        requestNode.setMethod(methodApiObj.getFormalApiMethod());
+        switch (methodApiObj.getFormalApiMethod()) {
             case Constants.PUT:
             case Constants.POST:
                 requestNode.setUrl(urlNode());
@@ -123,27 +139,8 @@ public class PostmanTemplate {
         return requestNode;
     }
 
-    private String getApiMethod(){
-        if (StringUtils.isBlank(apiMethod)) {
-            apiMethod = methodApiObj.getApiMethod().toUpperCase().substring(1, methodApiObj.getApiMethod().length() - 1);
-        }
-        return apiMethod;
-    }
-
-    private boolean isGET(){
-        return getApiMethod().equals(Constants.GET);
-    }
-
-    private boolean isPOST(){
-        return getApiMethod().equals(Constants.POST);
-    }
-
-    private boolean isPUT(){
-        return getApiMethod().equals(Constants.PUT);
-    }
-
-    private boolean isDELETE(){
-        return getApiMethod().equals(Constants.DELETE);
+    private boolean isGET() {
+        return methodApiObj.getFormalApiMethod().equals(Constants.GET);
     }
 
     private List<Map<String, String>> header() {
@@ -158,25 +155,11 @@ public class PostmanTemplate {
     private BodyNode bodyNode() {
         BodyNode bodyNode = new BodyNode();
         bodyNode.setMode(BodyModeEnum.RAW.getValue());
-        bodyNode.setRaw(getParamsPart());
+        bodyNode.setRaw(ApiDocTemplate.getParamsData(methodApiObj));
         return bodyNode;
     }
 
     public String getPostmanJSON() {
         return JsonHelper.beautify(new Gson().toJson(postmanRequest()));
-    }
-
-    private String getParamsPart() {
-        if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
-            String content = String.format("{%s}", getParamData()).replaceAll("\\*", "");
-            return JsonHelper.beautify(content);
-        }
-        return "";
-    }
-
-    private String getParamData() {
-        StringBuffer sb = new StringBuffer();
-        ApiDocTemplate.processJSONData(methodApiObj.getParams(), sb, "");
-        return sb.toString();
     }
 }

@@ -55,6 +55,10 @@ public class TypeHelper {
         return false;
     }
 
+    public static boolean isMultipartFile(Type type){
+        return type.getTypeName().equalsIgnoreCase(Constants.MULTIPARTFILE);
+    }
+
     /**
      * 判断class/interface是否是Map类型
      */
@@ -73,6 +77,10 @@ public class TypeHelper {
      */
     public static boolean isVoid(Class cls) {
         return (cls.getName().equals(Void.class.getName())) || cls.getName().equalsIgnoreCase(Constants.VOID);
+    }
+
+    public static boolean isVoid(Type type) {
+        return (type.getTypeName().equals(Void.class.getName())) || type.getTypeName().equalsIgnoreCase(Constants.VOID);
     }
 
     /**

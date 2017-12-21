@@ -3,6 +3,7 @@ package com.xuzp.apihelper.template.apidoc;
 import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.utils.Constants;
+import com.xuzp.apihelper.utils.JsonHelper;
 import com.xuzp.apihelper.utils.MockDataHelper;
 import com.xuzp.apihelper.utils.TypeHelper;
 import org.apache.commons.collections.CollectionUtils;
@@ -21,7 +22,7 @@ public class ApiDocTemplate {
 
     private MethodApiObj methodApiObj;
 
-    public ApiDocTemplate(MethodApiObj methodApiObj){
+    public ApiDocTemplate(MethodApiObj methodApiObj) {
         this.methodApiObj = methodApiObj;
     }
 
@@ -107,7 +108,7 @@ public class ApiDocTemplate {
     /**
      * 递归处理参数列表
      */
-    private void processParamList(List<Param> params, StringBuffer sb, String prefixName) {
+    private static void processParamList(List<Param> params, StringBuffer sb, String prefixName) {
         if (CollectionUtils.isNotEmpty(params)) {
             params.forEach(param -> {
                 sb.append(Constants.PARAM_LIST_TEMPLATE
@@ -155,12 +156,23 @@ public class ApiDocTemplate {
                     if (param.getType() instanceof ParameterizedTypeImpl) {
                         isCollection = TypeHelper.isCollection(((ParameterizedTypeImpl) param.getType()).getRawType());
                     }
-                    sb.append(" *     " + prefixSpace + "\"" + param.getName() + "\": ")
-                            .append(isCollection ? "[{" : "{").append(LF);
+                    if (param.isBasicType()) {
+                        sb.append(" *     " + prefixSpace)
+                                .append(isCollection ? "[{" : "{").append(LF);
+                    } else {
+                        sb.append(" *     " + prefixSpace + "\"" + param.getName() + "\": ")
+                                .append(isCollection ? "[{" : "{").append(LF);
+                    }
+
+
                     processJSONData(param.getChildren(), sb, prefixSpace + "    ");
                     sb.append(LF).append(" *      " + prefixSpace).append(isCollection ? "}]" : "}");
                 } else {
-                    sb.append(" *     " + prefixSpace + "\"" + param.getName() + "\": ").append(MockDataHelper.mockValue(param));
+                    if (param.isBasicType()) {
+                        sb.append(" *     " + prefixSpace).append(MockDataHelper.mockValue(param));
+                    } else {
+                        sb.append(" *     " + prefixSpace + "\"" + param.getName() + "\": ").append(MockDataHelper.mockValue(param));
+                    }
                 }
             }
         }
@@ -187,5 +199,33 @@ public class ApiDocTemplate {
         } else {
             return returnTemplate(false);
         }
+    }
+
+    public static String getParamsData(MethodApiObj methodApiObj) {
+        if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
+            StringBuffer sb = new StringBuffer();
+            ApiDocTemplate.processJSONData(methodApiObj.getParams(), sb, "");
+            String content = String.format("{%s}", sb.toString()).replaceAll("\\*", "");
+            return JsonHelper.beautify(content);
+        }
+        return "";
+    }
+
+
+    public static String getReturnData(MethodApiObj methodApiObj) {
+        if (CollectionUtils.isNotEmpty(methodApiObj.getReturns())) {
+            StringBuffer sb = new StringBuffer();
+            ApiDocTemplate.processJSONData(methodApiObj.getReturns(), sb, "");
+            String content = String.format("{%s}", sb.toString()).replaceAll("\\*", "")
+                    .replaceAll("\"","\\\\\"");
+            return JsonHelper.beautify(content);
+        }
+        return "";
+    }
+
+    public static String getParamList(MethodApiObj methodApiObj){
+        StringBuffer sb = new StringBuffer();
+        processParamList(methodApiObj.getParams(), sb, "");
+        return sb.toString();
     }
 }

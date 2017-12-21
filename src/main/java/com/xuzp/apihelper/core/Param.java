@@ -19,6 +19,7 @@ public class Param {
     private String name;
     private String desc;
     private String defaultValue;
+    private boolean isBasicType = false;
     private List<Param> children;
 
     public Param(Type type, String name, String desc, String defaultValue, List<Param> children){

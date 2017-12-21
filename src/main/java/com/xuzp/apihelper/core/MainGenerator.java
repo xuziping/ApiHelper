@@ -7,6 +7,7 @@ import com.xuzp.apihelper.properties.ApiHelperProperties;
 import com.xuzp.apihelper.properties.LoadProperties;
 import com.xuzp.apihelper.template.apidoc.ApiDocTemplate;
 import com.xuzp.apihelper.template.help.Help;
+import com.xuzp.apihelper.template.markdown.MarkdownTemplate;
 import com.xuzp.apihelper.template.postman.PostmanTemplate;
 import com.xuzp.apihelper.utils.ClassHelper;
 import com.xuzp.apihelper.utils.Constants;
@@ -40,6 +41,7 @@ public class MainGenerator {
 
         ApiHelperProperties properties = LoadProperties.getProperties();
         ClassHelper.loadClassPath(properties.getClassPath());
+        MarkdownTemplate.loadTemplate(properties.getMarkdownTemplate());
         String moduleName = properties.getModuleName();
         Set<Class> clsSet = ClassHelper.loadServiceClasses(properties.getServicePath());
         if (CollectionUtils.isNotEmpty(clsSet)) {
@@ -57,6 +59,7 @@ public class MainGenerator {
                 try {
                     List<MethodApiObj> apiList = generator.parse(cls);
                     generateApiDocFile(apiList, cls, properties.getOutputPath());
+                    generateMarkdownFile(apiList, cls, properties.getOutputPath());
                     apiList.stream().forEach(api -> {
                         postmanTemplate.add(api);
                     });
@@ -80,14 +83,33 @@ public class MainGenerator {
         StringBuilder apiDocContent = new StringBuilder();
         apiList.stream().forEach(api -> {
             String apiDoc = new ApiDocTemplate(api).getApiDoc();
-            log.info(apiDoc);
-            apiDocContent.append(apiDoc).append(LF).append(LF);
+            if (StringUtils.isNotEmpty(apiDoc)) {
+                log.info(apiDoc);
+                apiDocContent.append(apiDoc).append(LF).append(LF);
+            }
         });
         File apiDocFolder = new File(outputPath, Constants.API_DOC_FOLDER);
         if (apiDocContent.length() > 0) {
             File outFile = new File(apiDocFolder, cls.getSimpleName() + TEXT_FILE_SUFFIX);
             FileUtils.writeStringToFile(outFile, apiDocContent.toString(), ENCODING);
             log.info("生成apidoc写入{}成功", outFile.getAbsolutePath());
+        }
+    }
+
+    private static void generateMarkdownFile(List<MethodApiObj> apiList, Class cls, String outputPath) throws Exception {
+        StringBuilder markdownContent = new StringBuilder();
+        apiList.stream().forEach(api -> {
+            String markdown = new MarkdownTemplate(api).getMarkdown();
+            if (StringUtils.isNotEmpty(markdown)) {
+                log.info(markdown);
+                markdownContent.append(markdown).append(LF).append(LF);
+            }
+        });
+        File markdownFolder = new File(outputPath, Constants.MARKDOWN_FOLDER);
+        if (markdownContent.length() > 0) {
+            File outFile = new File(markdownFolder, cls.getSimpleName() + MARKDOWN_FILE_SUFFIX);
+            FileUtils.writeStringToFile(outFile, markdownContent.toString(), ENCODING);
+            log.info("生成markdown写入{}成功", outFile.getAbsolutePath());
         }
     }
 
@@ -154,20 +176,35 @@ public class MainGenerator {
                     Parameter parameter = method.getParameters()[0];
                     log.debug("参数值: {} - {}", parameter.getParameterizedType(), parameter.getName());
                     List<Param> params = collectTypeInfo(parameter.getParameterizedType(), 0, true);
+                    if (CollectionUtils.isNotEmpty(params)) {
+                        String paramName = CommentHelper.getParameterName(cls, method);
+                        params.stream().filter(x -> StringUtils.isBlank(x.getName())).forEach(x -> {
+                            x.setName(StringUtils.isNotEmpty(paramName) ? paramName: parameter.getName());
+                        });
+                    }
                     api.setParams(params);
                 } else {
                     log.debug("没有参数");
                 }
 
-                // 支持泛型ResultBase<T> 和 void
-                Type returnType = TypeHelper.isVoid(method.getReturnType()) ? Type.class :
+                // 支持泛型ResultBase<T> 和 void及基础类型
+                Type returnType = TypeHelper.isVoid(method.getReturnType()) ||
+                        TypeHelper.isBasicType(method.getReturnType()) ? method.getReturnType() :
                         ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
-                log.debug("返回值: {}", returnType.getTypeName());
-                List<Param> returns = collectTypeInfo(returnType, 0, false);
-                api.setReturns(returns);
-                api.setIsCollectionReturnType(returnType instanceof ParameterizedTypeImpl
-                        && TypeHelper.isCollection(((ParameterizedTypeImpl) returnType).getRawType()));
-
+                if (TypeHelper.isBasicType(returnType) ||
+                        TypeHelper.isVoid(returnType)) {
+                    log.debug("返回值: 基础数据类型 {}", returnType.getTypeName());
+                    Param param = new Param(returnType, null, null, null, null);
+                    param.setBasicType(true);
+                    api.setReturns(Lists.newArrayList(param));
+                    api.setIsCollectionReturnType(Boolean.FALSE);
+                } else {
+                    log.debug("返回值: {}", returnType.getTypeName());
+                    List<Param> returns = collectTypeInfo(returnType, 0, false);
+                    api.setReturns(returns);
+                    api.setIsCollectionReturnType(returnType instanceof ParameterizedTypeImpl
+                            && TypeHelper.isCollection(((ParameterizedTypeImpl) returnType).getRawType()));
+                }
                 methodApiObjs.add(api);
             }
         }
@@ -190,6 +227,14 @@ public class MainGenerator {
                 Type child = ((ParameterizedTypeImpl) type).getActualTypeArguments()[0];
                 return collectTypeInfo(child, level + 1, isParam);
             }
+        }
+        if (TypeHelper.isMultipartFile(type)) {
+            return Lists.newArrayList(
+                    new Param(type, "", "上传文件", null, null));
+        }
+        if (TypeHelper.isBasicType(type)) {
+            return Lists.newArrayList(
+                    new Param(type, "", "", null, null));
         }
         Class cls = null;
         try {
@@ -248,7 +293,6 @@ public class MainGenerator {
 //                    Type keyType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
 //                    Type valueType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[1];
 //                }
-
                 /** 处理翻页包装类字段，本项目中包装类是 Page */
                 else if (TypeHelper.isPagableType(field.getType())) {
                     if (isParam) {

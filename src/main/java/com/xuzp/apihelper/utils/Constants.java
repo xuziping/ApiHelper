@@ -19,6 +19,7 @@ public interface Constants {
     String INTEGER_LIST_TYPE_NAME = "java.util.List<java.lang.Integer>";
     String LONG_LIST_TYPE_NAME = "java.util.List<java.lang.Long>";
     String COLLECTION_TYPE_NAME = "java.util.Collection";
+    String MULTIPARTFILE = "org.springframework.web.multipart.MultipartFile";
     String OBJECT_TYPE_NAME = "java.lang.Object";
     String MAP_TYPE_NAME = "java.util.Map";
     String ENCODING = "UTF-8";
@@ -44,8 +45,10 @@ public interface Constants {
     String DEFAULT_OUTPUT_FOLDER = "__autoAPI";
     String API_DOC_FOLDER = "apidoc";
     String POSTMAN_FOLDER = "postman";
+    String MARKDOWN_FOLDER = "markdown";
     String TEXT_FILE_SUFFIX = ".txt";
     String JSON_FILE_SUFFIX = ".json";
+    String MARKDOWN_FILE_SUFFIX = ".md";
     /**
      * Property Area
      */
@@ -57,6 +60,7 @@ public interface Constants {
     String MODULE_PATH = "modulePath";
     String REQUEST_URL = "requestURL";
     String PAGABLE_CLASS_NAME = "pagableClassName";
+    String MARKDOWN_TEMPLATE = "markdownTemplate";
     /**
      * Postman Area
      */

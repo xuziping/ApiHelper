@@ -3,6 +3,9 @@ package com.xuzp.apihelper.comment;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.*;
@@ -29,24 +32,53 @@ public class CommentHelper {
 
     public static Map<String, List<CommentPair>> commentMap = Maps.newHashMap();
 
+    public static Map<String, CompilationUnit> compilationUnitMap = Maps.newHashMap();
+
     public static void preLoadComments(File file) {
         if (file != null && file.exists()) {
             if (file.isDirectory()) {
                 Arrays.stream(file.listFiles()).forEach(CommentHelper::preLoadComments);
-            } else if(ClassHelper.isJavaFile(file)){
+            } else if (ClassHelper.isJavaFile(file)) {
                 try {
                     CompilationUnit compilationUnit = JavaParser.parse(file);
                     List<CommentPair> commentPairs = collectComments(compilationUnit);
+                    String className = ClassHelper.getPackageName(compilationUnit) + file.getName().replaceFirst(".java", "");
                     if (CollectionUtils.isNotEmpty(commentPairs)) {
-                        String className = ClassHelper.getPackageName(compilationUnit) + file.getName().replaceFirst(".java", "");
                         log.info("加载注释成功，class: {}", className);
-                        CommentHelper.commentMap.put(className, commentPairs);
+                        commentMap.put(className, commentPairs);
                     }
+                    compilationUnitMap.put(className, compilationUnit);
                 } catch (Exception e) {
                     log.error(e.getMessage());
                 }
             }
         }
+    }
+
+    /**
+     * 获取参数名称
+     */
+    public static String getParameterName(Class cls, Method method)  {
+        StringBuilder sb = new StringBuilder();
+        CompilationUnit compilationUnit = compilationUnitMap.get(cls.getName());
+        if (compilationUnit != null) {
+            try {
+                compilationUnit.getChildNodes().stream().filter(x -> x instanceof ClassOrInterfaceDeclaration).findFirst().ifPresent(x -> {
+                            x.getChildNodes().stream().filter(xm -> xm instanceof MethodDeclaration).forEach(m -> {
+                                if (((MethodDeclaration) m).getNameAsString().equalsIgnoreCase(method.getName())) {
+                                    m.getChildNodes().stream().filter(mp -> mp instanceof Parameter).findFirst().ifPresent(mp->{
+                                        sb.append(((Parameter)mp).getNameAsString());
+                                    });
+                                }
+                            });
+                        }
+                );
+            }catch(Exception e) {
+                log.error("获取真实参数名失败，类={}，方法={}", cls.getName(), method.getName());
+            }
+        }
+        return sb.toString();
+
     }
 
     public static List<CommentPair> collectComments(CompilationUnit compilationUnit) {
@@ -123,7 +155,7 @@ public class CommentHelper {
         return commentPair;
     }
 
-    private static String getKey(Expression expression){
+    private static String getKey(Expression expression) {
         String key = null;
         if (expression instanceof ArrayInitializerExpr) {
             key = expression.asArrayInitializerExpr().getValues().get(0).asStringLiteralExpr().asString();
@@ -134,21 +166,21 @@ public class CommentHelper {
     }
 
     private static String getCommentContent(String content) {
-        if(StringUtils.isEmpty(content)) {
+        if (StringUtils.isEmpty(content)) {
             return "";
         }
         String[] lines = content.split("\r\n");
-        if(lines.length == 1) {
+        if (lines.length == 1) {
             lines = content.split("\n");
         }
         StringBuilder sb = new StringBuilder();
-        for(String line : lines) {
-            line = line.replaceAll("\\*", "").replaceAll("<[.[^>]]*>","").trim();
+        for (String line : lines) {
+            line = line.replaceAll("\\*", "").replaceAll("<[.[^>]]*>", "").trim();
             if (line.startsWith("@")) {
                 // 忽略所有 @ 之后的注释
                 break;
             }
-            if(sb.length()>0) {
+            if (sb.length() > 0) {
                 // 只取首行注释
                 break;
             }
@@ -174,7 +206,7 @@ public class CommentHelper {
         return result;
     }
 
-    public static String getEnumInfo(String typeName){
+    public static String getEnumInfo(String typeName) {
         StringBuilder sb = new StringBuilder();
         try {
             Class enumClass = Class.forName(typeName);
@@ -182,13 +214,13 @@ public class CommentHelper {
             Object[] enumObjs = enumClass.getEnumConstants();
 
             if (null != enumObjs) {
-                for(Object enumObj: enumObjs) {
-                    if(sb.length()>0) {
+                for (Object enumObj : enumObjs) {
+                    if (sb.length() > 0) {
                         sb.append(", ");
                     }
                     sb.append(enumObj.toString());
-                    if (getDescMethod!=null) {
-                        sb.append(" ").append((String)getDescMethod.invoke(enumObj));
+                    if (getDescMethod != null) {
+                        sb.append(" ").append((String) getDescMethod.invoke(enumObj));
                     }
                 }
             }

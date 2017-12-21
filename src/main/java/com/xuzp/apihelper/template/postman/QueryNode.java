@@ -14,5 +14,5 @@ public class QueryNode {
 
     private String value;
 
-    private String equals;
+    private Boolean equals;
 }

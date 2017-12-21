@@ -43,7 +43,7 @@ public class MockDataHelper {
     private static String mockValue(Type type, int level) throws Exception {
 
         if (level > MAX_RECURSION) {
-            return "递归达到极限值，怀疑参数循环引用";
+            return "\"递归达到极限值，怀疑参数循环引用\"";
         }
 
         String typeName = TypeHelper.fixTypeName(type.getTypeName());
@@ -81,7 +81,9 @@ public class MockDataHelper {
         } else if (type.getTypeName().equals(Void.class.getName())) {
             return "";
         } else if (type.getTypeName().equalsIgnoreCase(Object.class.getTypeName())) {
-            return "\"object string\"";
+            return "\"objectString\"";
+        } else if (TypeHelper.isMultipartFile(type)) {
+            return "\"上传文件\"";
         }
 
         if (type instanceof ParameterizedType) {

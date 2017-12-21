@@ -1,6 +1,7 @@
 package com.xuzp.apihelper.core;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -21,5 +22,12 @@ public class MethodApiObj {
     private List<Param> params;
     private List<Param> returns;
     private Boolean isCollectionReturnType;
+
+    public String getFormalApiMethod(){
+        if (StringUtils.isNotBlank(apiMethod)) {
+            return apiMethod.toUpperCase().substring(1, apiMethod.length() - 1);
+        }
+        return apiMethod;
+    }
 
 }
