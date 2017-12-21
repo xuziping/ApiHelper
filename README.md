@@ -2,7 +2,9 @@
 
 
 ----------
-Generates raw comments for ApiDoc to parse and generate the API documents.
+Generates raw comments for ApiDoc to parse and generate the API documents. 
+
+For now, API Helper generate ApiDoc, Postman and Markdown files under different folders after run once.
 
 ## Usage ##
 
