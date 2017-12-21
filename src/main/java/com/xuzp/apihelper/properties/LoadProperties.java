@@ -36,7 +36,6 @@ public class LoadProperties {
                 apiHelperProperties.setModulePath(getProperty(props, Constants.MODULE_PATH, ""));
                 apiHelperProperties.setRequestURL(getProperty(props, Constants.REQUEST_URL, Constants.DEFAULT_REQUEST_URL));
                 apiHelperProperties.setPagableClassName(getProperty(props, Constants.PAGABLE_CLASS_NAME, Constants.DEFAULT_PAGABLE_CLASS_NAME));
-                apiHelperProperties.setMarkdownTemplate(getProperty(props, Constants.MARKDOWN_TEMPLATE, ""));
             }
 
             ret = true;
@@ -49,11 +48,9 @@ public class LoadProperties {
 
     private static String getProperty(Properties props, String propertyName, String defaultValue) {
         String value = props.getProperty(propertyName, defaultValue);
-
         if (StringUtils.isEmpty(value)) {
             log.warn("没有设置{}", propertyName);
         }
-
         return value.trim();
     }
 

@@ -8,6 +8,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 /**
  * @author za-xuzhiping
@@ -21,17 +23,16 @@ public class MarkdownTemplate {
 
     private MethodApiObj methodApiObj;
 
-    public static synchronized void loadTemplate(String path) {
-        if (StringUtils.isNoneBlank(path)) {
-            File file = FileUtils.getFile(path);
-            if(file.exists() && file.isFile()) {
-                try {
-                    template = FileUtils.readFileToString(file, Constants.ENCODING);
-                } catch (Exception e) {
-                    log.error("加载Markdown模板失败，文件={}，异常={}", file.getAbsolutePath(), e);
+    public static synchronized void loadTemplate() {
+            try {
+                File file = new File(MarkdownTemplate.class.getClassLoader().getResource(Constants.MARKDOWN_TEMPLATE).getFile());
+                if(!file.exists() || !file.isFile()) {
+                    file =  new File(MarkdownTemplate.class.getClassLoader().getResource(Constants.DEFAULT_MARKDOWN_TEMPLATE).getFile());
                 }
+                template = FileUtils.readFileToString(file, Constants.ENCODING);
+            } catch(Exception e) {
+                log.error("加载Markdown模板失败，异常={}", e);
             }
-        }
     }
 
     public MarkdownTemplate(MethodApiObj methodApiObj) {
@@ -43,6 +44,7 @@ public class MarkdownTemplate {
             return "";
         }
         return template.replaceAll("`API_METHOD`", methodApiObj.getFormalApiMethod())
+                .replaceAll("`API_LABEL_NAME`", methodApiObj.getLabelName())
                 .replaceAll("`API_GROUP`", methodApiObj.getGroup())
                 .replaceAll("`API_PATH`", methodApiObj.getPath())
                 .replaceAll("`API_DESCRIPTION`", methodApiObj.getDesc())
@@ -52,15 +54,18 @@ public class MarkdownTemplate {
     }
 
     private String getRequestData() {
-        return "\t\t" + ApiDocTemplate.getParamsData(methodApiObj).replaceAll("\n","\n\t\t");
+        return "\t" + ApiDocTemplate.getRequestData(methodApiObj).replaceAll("\n","\n\t");
     }
 
     private String getResponseData() {
-        return "\t\t" + ApiDocTemplate.getReturnData(methodApiObj).replaceAll("\n","\n\t\t");
+        return "\t" + ApiDocTemplate.getResponseData(methodApiObj).replaceAll("\n","\n\t");
     }
 
     private String getParamList() {
         String content = ApiDocTemplate.getParamList(methodApiObj);
-        return content.replaceAll(" \\* @apiParam ", "").replaceAll(" ", " \\| ");
+        return content.replaceAll(" \\* @apiParam ", "")
+                .replaceAll(" ", " \\| ")
+                .replaceAll("\\{", "")
+                .replaceAll("\\}", "");
     }
 }

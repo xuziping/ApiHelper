@@ -41,7 +41,7 @@ public class MainGenerator {
 
         ApiHelperProperties properties = LoadProperties.getProperties();
         ClassHelper.loadClassPath(properties.getClassPath());
-        MarkdownTemplate.loadTemplate(properties.getMarkdownTemplate());
+        MarkdownTemplate.loadTemplate();
         String moduleName = properties.getModuleName();
         Set<Class> clsSet = ClassHelper.loadServiceClasses(properties.getServicePath());
         if (CollectionUtils.isNotEmpty(clsSet)) {

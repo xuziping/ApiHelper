@@ -60,7 +60,8 @@ public interface Constants {
     String MODULE_PATH = "modulePath";
     String REQUEST_URL = "requestURL";
     String PAGABLE_CLASS_NAME = "pagableClassName";
-    String MARKDOWN_TEMPLATE = "markdownTemplate";
+    String MARKDOWN_TEMPLATE = "defaultTemplate.md";
+    String DEFAULT_MARKDOWN_TEMPLATE = "defaultTemplate.md";
     /**
      * Postman Area
      */

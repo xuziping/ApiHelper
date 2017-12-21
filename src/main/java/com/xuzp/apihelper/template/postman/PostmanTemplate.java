@@ -155,7 +155,7 @@ public class PostmanTemplate {
     private BodyNode bodyNode() {
         BodyNode bodyNode = new BodyNode();
         bodyNode.setMode(BodyModeEnum.RAW.getValue());
-        bodyNode.setRaw(ApiDocTemplate.getParamsData(methodApiObj));
+        bodyNode.setRaw(ApiDocTemplate.getRequestData(methodApiObj));
         return bodyNode;
     }
 

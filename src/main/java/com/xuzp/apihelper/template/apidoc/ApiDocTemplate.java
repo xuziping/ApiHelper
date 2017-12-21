@@ -67,7 +67,7 @@ public class ApiDocTemplate {
     /**
      * 返回值json的模板
      */
-    private String returnTemplate(boolean hasReturnValue) {
+    private static String returnTemplate(MethodApiObj methodApiObj, boolean hasReturnValue) {
         StringBuffer sb = new StringBuffer();
         sb.append(" *  {").append(LF);
         sb.append(" *     \"msg\": \"\",").append(LF);
@@ -93,7 +93,7 @@ public class ApiDocTemplate {
         return wholeTemplate().replaceAll("#\\{PATH\\}", methodApiObj.getPath()).replaceAll("#\\{DESC\\}", methodApiObj.getDesc())
                 .replaceAll("#\\{APINAME\\}", methodApiObj.getName()).replaceAll("#\\{APIGROUP\\}", methodApiObj.getGroup())
                 .replaceAll("#\\{APIMETHOD\\}", methodApiObj.getApiMethod()).replaceAll("#\\{LABELNAME\\}", methodApiObj.getLabelName())
-                .replaceAll("#\\{PARAM_PART\\}", getParamPart()).replaceAll("#\\{RETURN_PART\\}", getReturnPart());
+                .replaceAll("#\\{PARAM_PART\\}", getParamPart()).replaceAll("#\\{RETURN_PART\\}", getReturnPart(methodApiObj));
     }
 
     /**
@@ -134,7 +134,7 @@ public class ApiDocTemplate {
     /**
      * 获取出参示例内容
      */
-    private String getReturnData() {
+    private static String getReturnData(MethodApiObj methodApiObj) {
         StringBuffer sb = new StringBuffer();
         processJSONData(methodApiObj.getReturns(), sb, "   ");
         return sb.toString();
@@ -193,37 +193,41 @@ public class ApiDocTemplate {
     /**
      * 获取出参示例内容
      */
-    private String getReturnPart() {
+    private static String getReturnPart(MethodApiObj methodApiObj) {
         if (CollectionUtils.isNotEmpty(methodApiObj.getReturns())) {
-            return returnTemplate(true).replaceFirst("#\\{RETURN_VALUES\\}", getReturnData());
+            return returnTemplate(methodApiObj, true).replaceFirst("#\\{RETURN_VALUES\\}", getReturnData(methodApiObj));
         } else {
-            return returnTemplate(false);
+            return returnTemplate(methodApiObj, false);
         }
     }
 
-    public static String getParamsData(MethodApiObj methodApiObj) {
+    public static String getRequestData(MethodApiObj methodApiObj) {
         if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
             StringBuffer sb = new StringBuffer();
+            sb.append(" *  {").append(LF);
             ApiDocTemplate.processJSONData(methodApiObj.getParams(), sb, "");
-            String content = String.format("{%s}", sb.toString()).replaceAll("\\*", "");
+            sb.append(LF);
+            sb.append(" *  }");
+            String content = sb.toString().replaceAll(" \\*  ", "")
+                    .replaceAll("\"", "\\\\\"");
             return JsonHelper.beautify(content);
         }
         return "";
     }
 
 
-    public static String getReturnData(MethodApiObj methodApiObj) {
+    public static String getResponseData(MethodApiObj methodApiObj) {
         if (CollectionUtils.isNotEmpty(methodApiObj.getReturns())) {
             StringBuffer sb = new StringBuffer();
             ApiDocTemplate.processJSONData(methodApiObj.getReturns(), sb, "");
-            String content = String.format("{%s}", sb.toString()).replaceAll("\\*", "")
-                    .replaceAll("\"","\\\\\"");
+            String content = getReturnPart(methodApiObj).replaceAll(" \\*  ", "")
+                    .replaceAll("\"", "\\\\\"");
             return JsonHelper.beautify(content);
         }
         return "";
     }
 
-    public static String getParamList(MethodApiObj methodApiObj){
+    public static String getParamList(MethodApiObj methodApiObj) {
         StringBuffer sb = new StringBuffer();
         processParamList(methodApiObj.getParams(), sb, "");
         return sb.toString();
