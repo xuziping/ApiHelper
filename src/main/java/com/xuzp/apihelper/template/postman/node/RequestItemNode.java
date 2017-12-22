@@ -1,4 +1,4 @@
-package com.xuzp.apihelper.template.postman;
+package com.xuzp.apihelper.template.postman.node;
 
 import lombok.Data;
 

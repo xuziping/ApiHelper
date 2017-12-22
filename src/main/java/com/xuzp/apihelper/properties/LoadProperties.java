@@ -36,6 +36,7 @@ public class LoadProperties {
                 apiHelperProperties.setModulePath(getProperty(props, Constants.MODULE_PATH, ""));
                 apiHelperProperties.setRequestURL(getProperty(props, Constants.REQUEST_URL, Constants.DEFAULT_REQUEST_URL));
                 apiHelperProperties.setPagableClassName(getProperty(props, Constants.PAGABLE_CLASS_NAME, Constants.DEFAULT_PAGABLE_CLASS_NAME));
+                apiHelperProperties.setMarkdownTemplate(getProperty(props, Constants.MARKDOWN_TEMPLATE, Constants.DEFAULT_MARKDOWN_TEMPLATE));
             }
 
             ret = true;

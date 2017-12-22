@@ -50,6 +50,11 @@ public class ApiHelperProperties {
      */
     private String pagableClassName;
 
+    /**
+     * Markdown模板文件位置
+     */
+    private String markdownTemplate;
+
     public String getServicePath(){
         if (StringUtils.isNoneBlank(servicePath)) {
             return servicePath;

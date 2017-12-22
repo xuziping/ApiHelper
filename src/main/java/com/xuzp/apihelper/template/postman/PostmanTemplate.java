@@ -6,9 +6,11 @@ import com.google.gson.Gson;
 import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.properties.LoadProperties;
-import com.xuzp.apihelper.template.apidoc.ApiDocTemplate;
+import com.xuzp.apihelper.template.base.BaseTemplate;
+import com.xuzp.apihelper.template.base.ITemplate;
 import com.xuzp.apihelper.template.postman.enums.BodyModeEnum;
 import com.xuzp.apihelper.template.postman.enums.ContentTypeEnum;
+import com.xuzp.apihelper.template.postman.node.*;
 import com.xuzp.apihelper.utils.Constants;
 import com.xuzp.apihelper.utils.JsonHelper;
 import com.xuzp.apihelper.utils.MockDataHelper;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
  * @Date 2017/12/16
  * @Time 17:44
  */
-public class PostmanTemplate {
+public class PostmanTemplate implements ITemplate {
 
     private MethodApiObj methodApiObj;
 
@@ -155,11 +157,28 @@ public class PostmanTemplate {
     private BodyNode bodyNode() {
         BodyNode bodyNode = new BodyNode();
         bodyNode.setMode(BodyModeEnum.RAW.getValue());
-        bodyNode.setRaw(ApiDocTemplate.getRequestData(methodApiObj));
+        bodyNode.setRaw(getRequestData());
         return bodyNode;
     }
 
     public String getPostmanJSON() {
         return JsonHelper.beautify(new Gson().toJson(postmanRequest()));
+    }
+
+    @Override
+    public String getRequestData() {
+        return BaseTemplate.getRequestData(methodApiObj);
+    }
+
+    @Override
+    public String getResponseData() {
+        // 不需要
+        return "";
+    }
+
+    @Override
+    public String getParamList() {
+        // 不需要
+        return "";
     }
 }
