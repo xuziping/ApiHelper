@@ -7,9 +7,27 @@ package com.xuzp.apihelper.template.base;
  */
 public interface ITemplate {
 
-    String getRequestData();
+    /**
+     * 获取请求Json
+     * @return
+     */
+    String getRequestJson();
 
-    String getResponseData();
+    /**
+     * 获取返回Json
+     * @return
+     */
+    String getResponseJson();
 
+    /**
+     * 获取请求参数列表
+     * @return
+     */
     String getParamList();
+
+    /**
+     * 获取最终生成内容
+     * @return
+     */
+    String getContent();
 }

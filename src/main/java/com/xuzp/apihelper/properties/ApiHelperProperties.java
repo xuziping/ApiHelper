@@ -1,7 +1,6 @@
 package com.xuzp.apihelper.properties;
 
 import com.xuzp.apihelper.utils.Constants;
-import lombok.Data;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,7 +11,6 @@ import java.io.File;
  * @Date 2017/12/13
  * @Time 15:49
  */
-@Data
 public class ApiHelperProperties {
 
     /**
@@ -51,9 +49,9 @@ public class ApiHelperProperties {
     private String pagableClassName;
 
     /**
-     * Markdown模板文件位置
+     * 模板文件夹位置
      */
-    private String markdownTemplate;
+    private String templatePath;
 
     public String getServicePath(){
         if (StringUtils.isNoneBlank(servicePath)) {
@@ -100,4 +98,54 @@ public class ApiHelperProperties {
         }
         return moduleName;
     }
+
+
+    public void setCommentPath(String commentPath) {
+        this.commentPath = commentPath;
+    }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    public String getModulePath() {
+        return modulePath;
+    }
+
+    public void setModulePath(String modulePath) {
+        this.modulePath = modulePath;
+    }
+
+    public void setClassPath(String classPath) {
+        this.classPath = classPath;
+    }
+
+    public void setServicePath(String servicePath) {
+        this.servicePath = servicePath;
+    }
+
+    public String getRequestURL() {
+        return requestURL;
+    }
+
+    public void setRequestURL(String requestURL) {
+        this.requestURL = requestURL;
+    }
+
+    public String getPagableClassName() {
+        return pagableClassName;
+    }
+
+    public void setPagableClassName(String pagableClassName) {
+        this.pagableClassName = pagableClassName;
+    }
+
+    public String getTemplatePath() {
+        return templatePath;
+    }
+
+    public void setTemplatePath(String templatePath) {
+        this.templatePath = templatePath;
+    }
+
 }

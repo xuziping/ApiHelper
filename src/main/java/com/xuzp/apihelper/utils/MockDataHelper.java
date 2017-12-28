@@ -2,7 +2,8 @@ package com.xuzp.apihelper.utils;
 
 import com.google.common.collect.Sets;
 import com.xuzp.apihelper.core.Param;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.Field;
@@ -21,8 +22,9 @@ import static com.xuzp.apihelper.utils.Constants.*;
  * @Date 2017/12/7
  * @Time 17:23
  */
-@Slf4j
 public class MockDataHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(MockDataHelper.class);
 
     /**
      * 按照参数类型返回假数据，用来填充参数请求和返回请求

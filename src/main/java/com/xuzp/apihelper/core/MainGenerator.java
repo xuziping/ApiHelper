@@ -12,10 +12,11 @@ import com.xuzp.apihelper.template.postman.PostmanTemplate;
 import com.xuzp.apihelper.utils.ClassHelper;
 import com.xuzp.apihelper.utils.Constants;
 import com.xuzp.apihelper.utils.TypeHelper;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -34,14 +35,14 @@ import static com.xuzp.apihelper.utils.TypeHelper.fixTypeName;
  * @Date 2017/11/17
  * @Time 11:34
  */
-@Slf4j
 public class MainGenerator {
+
+    private static final Logger log = LoggerFactory.getLogger(MainGenerator.class);
 
     public static void main(String[] args) {
 
         ApiHelperProperties properties = LoadProperties.getProperties();
         ClassHelper.loadClassPath(properties.getClassPath());
-        MarkdownTemplate.loadTemplate();
         String moduleName = properties.getModuleName();
         Set<Class> clsSet = ClassHelper.loadServiceClasses(properties.getServicePath());
         if (CollectionUtils.isNotEmpty(clsSet)) {
@@ -76,13 +77,16 @@ public class MainGenerator {
 
         }
         log.info("完成");
-        log.info(Help.message());
+        String msg = Help.message();
+        if (StringUtils.isNotEmpty(msg)) {
+            log.info(Help.message());
+        }
     }
 
     private static void generateApiDocFile(List<MethodApiObj> apiList, Class cls, String outputPath) throws Exception {
         StringBuilder apiDocContent = new StringBuilder();
         apiList.stream().forEach(api -> {
-            String apiDoc = new ApiDocTemplate(api).getApiDoc();
+            String apiDoc = new ApiDocTemplate(api).getContent();
             if (StringUtils.isNotEmpty(apiDoc)) {
                 log.info(apiDoc);
                 apiDocContent.append(apiDoc).append(LF).append(LF);
@@ -99,7 +103,7 @@ public class MainGenerator {
     private static void generateMarkdownFile(List<MethodApiObj> apiList, Class cls, String outputPath) throws Exception {
         StringBuilder markdownContent = new StringBuilder();
         apiList.stream().forEach(api -> {
-            String markdown = new MarkdownTemplate(api).getMarkdown();
+            String markdown = new MarkdownTemplate(api).getContent();
             if (StringUtils.isNotEmpty(markdown)) {
                 log.info(markdown);
                 markdownContent.append(markdown).append(LF).append(LF);
@@ -116,7 +120,7 @@ public class MainGenerator {
     private static void generatePostmanFile(String outputPath, PostmanTemplate postmanTemplate) throws Exception {
         File postmanFolder = FileUtils.getFile(outputPath, Constants.POSTMAN_FOLDER);
         if (postmanTemplate.hasData()) {
-            String postmanContent = postmanTemplate.getPostmanJSON();
+            String postmanContent = postmanTemplate.getContent();
             File outFile = FileUtils.getFile(postmanFolder, "postman" + JSON_FILE_SUFFIX);
             FileUtils.writeStringToFile(outFile, postmanContent, ENCODING);
             log.info("生成postman写入{}成功", outFile.getAbsolutePath());
@@ -367,11 +371,11 @@ public class MainGenerator {
     }
 
     private String getApiMethod(Annotation annotation) {
-        String value = "{POST}";
+        String value = "POST";
         if (annotation != null) {
             RequestMapping requestMapping = ((RequestMapping) annotation);
             if (requestMapping.method() != null && requestMapping.method().length == 1) {
-                value = String.format("{%s}", requestMapping.method()[0].name());
+                value = String.format("%s", requestMapping.method()[0].name());
             }
         }
         return value;

@@ -13,9 +13,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.xuzp.apihelper.utils.ClassHelper;
 import com.xuzp.apihelper.utils.Constants;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -27,8 +28,9 @@ import java.util.stream.Collectors;
  * @Date 2017/12/11
  * @Time 18:06
  */
-@Slf4j
 public class CommentHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(CommentHelper.class);
 
     public static Map<String, List<CommentPair>> commentMap = Maps.newHashMap();
 

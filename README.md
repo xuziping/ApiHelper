@@ -15,7 +15,24 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
 
 2. When ApiDoc is ready, please  create a property file called "*apiHelper.properties*" and set necessary properties. Please refer to the *Configuration* part.
 
-3. After set the properties, you could double click **runApiHelper.bat** directly, it would generate __autoAPI. Of course, you could run it manually as well:
+3. Please copy templates from src/main/resources/template under your "templatePath". For now, there are four templates:
+
+		apidoc_template.ftl
+		It is the whole template for ApiDoc. We don't suggest you to change it.
+
+		markdown_template.ftl
+		It is the whole template for Markdown. 
+		You could re-write it with your pleasure. Please refer to the "How to write your own templates" part before you re-design.
+
+		response_json.ftl
+		It is the response json template. 
+		Because different company/teams have different return json format, please feel free to re-design it. 
+
+		help.ftl
+		It is not so useful, the help message just displays in console after run the program.
+		When you re-design your templates, you might write your help messages here. 
+
+4. After set the properties, you could double click **runApiHelper.bat** directly, it would generate __autoAPI. Of course, you could run it manually as well:
 
 	    # generate temp files： __autoAPI/apidoc 和 __autoAPI/postman 
 		java -jar ApiHelper.jar 
@@ -23,7 +40,14 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
 		# generate final Api Documents： final目录
 	    apidoc -i __autoAPI/apidoc -o final/ -f ".txt" 
 
-4. Import APIs into Postman
+	**runApiHelper.bat**：
+
+		java -jar ApiHelper.jar 
+
+		ping -n 20 127.1>nul | apidoc -i __autoAPI/apidoc -o final/ -f ".txt"
+
+
+5. Import APIs into Postman
        
 		Open Postman tool and click the Import button，please choose __autoAPI/postman/postman.json to upload.
 
@@ -31,9 +55,15 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
 ## Configuration ##
  
 	# Necessary setting
-    # Please set your project/module home directory, and it would be great when "$modulePath/src/main/java" and "$modulePath/target/classes" folders exist.
+    # Please set your project/module home here
+	# It would be great when "$modulePath/src/main/java" and "$modulePath/target/classes" folders exist.
     modulePath=D:/workspace/tcc
    
+	# Ncessary setting
+	# Please set your template directory here.
+	# The program would locate freemarker templates including "apidoc_template.ftl", "markdown_template.ftl", "response_json.ftl" and "help.ftl" files under the directory.
+	templatePath=template
+
 	# Optional setting
     # This path is to parse code comments. 
 	# It supports more than one path, please split by ';'
@@ -50,7 +80,7 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
     # It supports more than one path, please split it by ';'
     # NOTICE: The program would add "$modulePath/target/classes" by default.  
     classPath=D:/workspace/tcc/target/classes
-    
+
 	# Optional setting
     # All the interface/methods which are implemented "RequestMapping" interface/methods under this folder will generate comments
     # It works for the sub-folders recursively.
@@ -73,23 +103,134 @@ Here are some examples:
 	# Example
     modulePath=D:/workspace/tcc
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
+	template=template
 
 	# Example
     commentPath=D:/workspace/tcc
 	servicePath=D:/workspace/tcc/service
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
+	template=template
 
 	# Example
     modulePath=D:/workspace/tcc
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
 	pagableClassName=PageContainer
 	requestURL=http://localhost:8070	
+	template=template
 
 	# Example
     modulePath=D:/workspace/tcc
  	commentPath=D:/workspace/abc;D:/workspace/edf
 	servicePath=D:/workspace/tcc/service
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
+	template=template
+
+## How to write your own templates ##
+
+Sometimes, it is possible that you want to design your own ApiDoc or Markdown templates. Please refer to the following PARAMs which are valid in **apidoc_template.ftl** and **markdown_template.ftl**
+
+
+| PARAM NAME      | TYPE | DESC |
+| :-------- | :--------| :--: |
+| APINAME | String | API short name |
+| APIGROUP | String | API group name |
+| APIMETHOD | String | API Method, like "POST","PUT" and so on |
+| LABELNAME | String | API label name |
+| PATH | String | API path, like "query" or "category/new"  |
+| DESC | String | API description |
+| PARAM_LIST | String | API param list, for now it is NOT allowed more detail user-defined |
+| REQUEST_JSON | String | API request json |
+| RESPONSE_JSON | String | API response json |	 
+
+> Postman file is based on V2.1 Collection format, it is NOT necessary to design its template any more. Thus we not support Postman Template under templatePath for now.
+
+> The default templates are under src/main/resources/template, please feel free to check them.
+
+**apidoc_template.ftl**
+
+	/**
+	 * @api {${APIMETHOD}} /${APIGROUP}/${PATH} ${LABELNAME}
+	 * @apiVersion 1.0.0
+	 * @apiName ${APINAME}
+	 * @apiGroup ${APIGROUP}
+	 * @apiExample Example
+	 *   http://ip:port/${APIGROUP}/${PATH}
+	<#if DESC!=''>
+	 * @apiDescription <b>使用说明：</b>${DESC}
+	</#if>
+	<#if PARAM_LIST??>
+	${PARAM_LIST}
+	</#if>
+	<#if REQUEST_JSON??>
+	 * @apiParamExample {json} 接口请求入参示例
+	${REQUEST_JSON}
+	</#if>
+	 * @apiSuccess {String} success true:成功, false:失败
+	 * @apiSuccess {String} msg 返回信息
+	 * @apiSuccessExample {json} 接口数据响应示例
+	${RESPONSE_JSON}
+	 */
+
+
+**markdown_template.ftl**
+
+	## ${LABELNAME} ##
+	
+	##### 请求方式: ${APIMETHOD}
+	##### URL:  http://ip:port/${APIGROUP}/${PATH}
+	
+	<#if DESC??>
+	#####  使用说明
+	> ${DESC}
+	</#if>
+	
+	<#if PARAM_LIST??>
+	#####   请求参数
+	| 参数名      | 类型 | 说明|
+	| :-------- | :--------| :--: |
+	${PARAM_LIST}
+	</#if>
+	
+	<#if REQUEST_JSON??>
+	#####  接口请求入参示例:
+	${REQUEST_JSON}
+	</#if>
+	
+	<#if RESPONSE_JSON??>
+	##### 接口数据响应示例：
+	${RESPONSE_JSON}
+	</#if>
+	
+	----------
+
+**response_json.ftl**
+
+	{
+	"msg": "",
+	"additionalInfo": {},
+	<#if RESPONSE_JSON??>
+	"value": ${RESPONSE_JSON},
+	</#if>
+	"success": true
+	}
+
+
+**help.ftl**
+
+	
+	##############   使用帮助：  ################
+	1 在运行本程序前，建议先给方法和字段名添加必要的注释
+	2 在运行本程序前，请先在程序同级目录下的apiHelper.properties中设置相应值并且准备好相应的template，具体设置请参见README.md
+	3 请运行程序 java -jar MainGenerator.jar，目前支持生成ApiDoc, Postman, Markdown格式文件
+	#############################################
+
+
+## How to get Jar package ##
+
+The project is based on Maven. Thus please clean and package the project using  maven commands directly:
+	
+	mvn clean
+	mvn package 
 
 
 ## About how to write comments in Java code ##
@@ -170,8 +311,7 @@ The standard parameter code looks like this:
 >
 > It would ignore the static fields.
 
-  As you see, if you have nice code style, you don't need to do some other special job and this program would not invade your original code. 
-
+  As you see, if you have nice code style, you don't need to do some other special job and this program would not invade your original code.
   Tool is just a tool:)
 
   

@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.xuzp.apihelper.properties.ApiHelperProperties;
 import com.xuzp.apihelper.properties.LoadProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -19,6 +21,8 @@ import static com.xuzp.apihelper.utils.Constants.*;
  * @Time 17:25
  */
 public class TypeHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(TypeHelper.class);
 
     /**
      * 生成易读的参数名称，去除包名和泛型修饰

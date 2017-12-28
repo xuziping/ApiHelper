@@ -1,8 +1,5 @@
 package com.xuzp.apihelper.template.postman.node;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 
 /**
@@ -10,12 +7,25 @@ import java.util.List;
  * @Date 2017/12/7
  * @Time 17:18
  */
-@Slf4j
-@Data
 public class PostmanRequest {
 
     private InfoNode info;
 
     private List<CategoryItemNode> item;
 
+    public InfoNode getInfo() {
+        return info;
+    }
+
+    public void setInfo(InfoNode info) {
+        this.info = info;
+    }
+
+    public List<CategoryItemNode> getItem() {
+        return item;
+    }
+
+    public void setItem(List<CategoryItemNode> item) {
+        this.item = item;
+    }
 }

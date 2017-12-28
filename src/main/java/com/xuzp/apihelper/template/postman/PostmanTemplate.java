@@ -7,7 +7,6 @@ import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.properties.LoadProperties;
 import com.xuzp.apihelper.template.base.BaseTemplate;
-import com.xuzp.apihelper.template.base.ITemplate;
 import com.xuzp.apihelper.template.postman.enums.BodyModeEnum;
 import com.xuzp.apihelper.template.postman.enums.ContentTypeEnum;
 import com.xuzp.apihelper.template.postman.node.*;
@@ -26,9 +25,7 @@ import java.util.stream.Collectors;
  * @Date 2017/12/16
  * @Time 17:44
  */
-public class PostmanTemplate implements ITemplate {
-
-    private MethodApiObj methodApiObj;
+public class PostmanTemplate extends BaseTemplate {
 
     private PostmanRequest postmanRequest;
 
@@ -63,12 +60,12 @@ public class PostmanTemplate implements ITemplate {
     }
 
     public void add(MethodApiObj api) {
-        this.methodApiObj = api;
-        CategoryItemNode categoryItemNode = categoryItemNodeMap.get(methodApiObj.getGroup());
+        this.setMethodApiObj(api);
+        CategoryItemNode categoryItemNode = categoryItemNodeMap.get(getMethodApiObj().getGroup());
         if (categoryItemNode == null) {
             categoryItemNode = new CategoryItemNode();
-            categoryItemNode.setName(methodApiObj.getGroup());
-            categoryItemNodeMap.put(methodApiObj.getGroup(), categoryItemNode);
+            categoryItemNode.setName(getMethodApiObj().getGroup());
+            categoryItemNodeMap.put(getMethodApiObj().getGroup(), categoryItemNode);
             this.postmanRequest.getItem().add(categoryItemNode);
         }
 
@@ -78,12 +75,12 @@ public class PostmanTemplate implements ITemplate {
             categoryItemNode.setItem(requestItemNodes);
         }
         requestItemNodes.add(requestItemNode());
-        this.methodApiObj = null;
+        this.setMethodApiObj(null);
     }
 
     private RequestItemNode requestItemNode() {
         RequestItemNode itemNode = new RequestItemNode();
-        itemNode.setName(methodApiObj.getPath());
+        itemNode.setName(getMethodApiObj().getPath());
         itemNode.setRequest(requestNode());
         return itemNode;
     }
@@ -95,14 +92,14 @@ public class PostmanTemplate implements ITemplate {
         urlNode.setHost(urlHelper.getHostSplit());
         urlNode.setPort(urlHelper.getPort());
         urlNode.setProtocol(urlHelper.getProtocol());
-        String[] path = String.format("%s/%s", methodApiObj.getGroup(), methodApiObj.getPath())
+        String[] path = String.format("%s/%s", getMethodApiObj().getGroup(), getMethodApiObj().getPath())
                 .replaceAll("\\\\", "/").split("/");
         urlNode.setPath(Lists.newArrayList(path));
-        String raw = String.format("%s/%s/%s", requestURL, methodApiObj.getGroup(), methodApiObj.getPath());
+        String raw = String.format("%s/%s/%s", requestURL, getMethodApiObj().getGroup(), getMethodApiObj().getPath());
         if (isGET()) {
-            if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
+            if (CollectionUtils.isNotEmpty(getMethodApiObj().getParams())) {
                 List<QueryNode> queryNodes = Lists.newArrayList();
-                for (Param param : methodApiObj.getParams()) {
+                for (Param param : getMethodApiObj().getParams()) {
                     queryNodes.add(queryNode(param));
                 }
                 urlNode.setQuery(queryNodes);
@@ -124,8 +121,9 @@ public class PostmanTemplate implements ITemplate {
 
     private RequestNode requestNode() {
         RequestNode requestNode = new RequestNode();
-        requestNode.setMethod(methodApiObj.getFormalApiMethod());
-        switch (methodApiObj.getFormalApiMethod()) {
+        String apiMethod = getMethodApiObj().getApiMethod();
+        requestNode.setMethod(apiMethod);
+        switch (apiMethod) {
             case Constants.PUT:
             case Constants.POST:
                 requestNode.setUrl(urlNode());
@@ -142,7 +140,7 @@ public class PostmanTemplate implements ITemplate {
     }
 
     private boolean isGET() {
-        return methodApiObj.getFormalApiMethod().equals(Constants.GET);
+        return getMethodApiObj().getApiMethod().toUpperCase().equals(Constants.GET);
     }
 
     private List<Map<String, String>> header() {
@@ -157,28 +155,22 @@ public class PostmanTemplate implements ITemplate {
     private BodyNode bodyNode() {
         BodyNode bodyNode = new BodyNode();
         bodyNode.setMode(BodyModeEnum.RAW.getValue());
-        bodyNode.setRaw(getRequestData());
+        bodyNode.setRaw(getRequestJson());
         return bodyNode;
     }
 
-    public String getPostmanJSON() {
+    @Override
+    public String getContent() {
         return JsonHelper.beautify(new Gson().toJson(postmanRequest()));
     }
 
     @Override
-    public String getRequestData() {
-        return BaseTemplate.getRequestData(methodApiObj);
+    public String getParamListTemplate() {
+        return null;
     }
 
     @Override
-    public String getResponseData() {
-        // 不需要
-        return "";
-    }
-
-    @Override
-    public String getParamList() {
-        // 不需要
-        return "";
+    public String getWholeTemplate() {
+        return null;
     }
 }

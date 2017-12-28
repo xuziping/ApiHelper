@@ -13,7 +13,7 @@ public enum BodyModeEnum {
     RAW("raw"),
 
     /**
-     * FORM 类型
+     * FORM 类型，目前不支持
      */
     FOARM_DATA("formdata");
 

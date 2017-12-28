@@ -1,6 +1,7 @@
 package com.xuzp.apihelper.utils;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,8 +13,9 @@ import java.util.List;
  * @Date 2017/12/19
  * @Time 23:18
  */
-@Slf4j
 public class UrlHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(UrlHelper.class);
 
     private URL url;
 
@@ -31,7 +33,7 @@ public class UrlHelper {
     }
 
     public String getPort() {
-        if (80 == url.getPort() || -1 == url.getPort()) {
+        if (Constants.PORT_80 == url.getPort() || -1 == url.getPort()) {
             return null;
         }
         return "" + url.getPort();

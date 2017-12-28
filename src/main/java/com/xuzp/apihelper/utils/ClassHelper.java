@@ -3,9 +3,10 @@ package com.xuzp.apihelper.utils;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -22,8 +23,9 @@ import static com.xuzp.apihelper.utils.Constants.JAVA;
  * @Date 2017/12/7
  * @Time 17:38
  */
-@Slf4j
 public class ClassHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(ClassHelper.class);
 
     private static Method addURL = initAddMethod();
     private static URLClassLoader classloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -55,6 +57,7 @@ public class ClassHelper {
                         file.toURI().toURL()
                 });
             } catch (Exception e) {
+                log.error("加载错误，异常={}", e.getMessage());
                 e.printStackTrace();
             }
         }

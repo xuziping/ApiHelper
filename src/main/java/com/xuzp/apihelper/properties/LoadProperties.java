@@ -1,8 +1,9 @@
 package com.xuzp.apihelper.properties;
 
 import com.xuzp.apihelper.utils.Constants;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -12,11 +13,11 @@ import java.util.Properties;
  * @Date 2017/12/12
  * @Time 18:19
  */
-@Slf4j
 public class LoadProperties {
 
-    private static ApiHelperProperties apiHelperProperties = null;
+    private static final Logger log = LoggerFactory.getLogger(LoadProperties.class);
 
+    private static ApiHelperProperties apiHelperProperties = null;
 
     static {
         loadProps();
@@ -36,7 +37,7 @@ public class LoadProperties {
                 apiHelperProperties.setModulePath(getProperty(props, Constants.MODULE_PATH, ""));
                 apiHelperProperties.setRequestURL(getProperty(props, Constants.REQUEST_URL, Constants.DEFAULT_REQUEST_URL));
                 apiHelperProperties.setPagableClassName(getProperty(props, Constants.PAGABLE_CLASS_NAME, Constants.DEFAULT_PAGABLE_CLASS_NAME));
-                apiHelperProperties.setMarkdownTemplate(getProperty(props, Constants.MARKDOWN_TEMPLATE, Constants.DEFAULT_MARKDOWN_TEMPLATE));
+                apiHelperProperties.setTemplatePath(getProperty(props, Constants.TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH));
             }
 
             ret = true;
