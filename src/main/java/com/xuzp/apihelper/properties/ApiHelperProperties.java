@@ -53,6 +53,11 @@ public class ApiHelperProperties {
      */
     private String templatePath;
 
+    /**
+     * 假数据定义文件位置
+     */
+    private String mockDataPath;
+
     public String getServicePath(){
         if (StringUtils.isNoneBlank(servicePath)) {
             return servicePath;
@@ -148,4 +153,12 @@ public class ApiHelperProperties {
         this.templatePath = templatePath;
     }
 
+
+    public String getMockDataPath() {
+        return mockDataPath;
+    }
+
+    public void setMockDataPath(String mockDataPath) {
+        this.mockDataPath = mockDataPath;
+    }
 }

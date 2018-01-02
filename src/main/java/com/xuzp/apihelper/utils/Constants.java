@@ -60,7 +60,9 @@ public interface Constants {
     String REQUEST_URL = "requestURL";
     String PAGABLE_CLASS_NAME = "pagableClassName";
     String TEMPLATE_PATH = "templatePath";
-    String DEFAULT_TEMPLATE_PATH = "template";
+    String MOCK_DATA_PATH = "mockDataPath";
+
+    String TEMPLATE_DEFAULT_PATH = "template";
 
     String SCHEMA_V2_1_0 = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
     String POST = "POST";

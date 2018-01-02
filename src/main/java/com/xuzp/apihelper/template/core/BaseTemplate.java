@@ -1,8 +1,9 @@
-package com.xuzp.apihelper.template.base;
+package com.xuzp.apihelper.template.core;
 
 import com.google.common.collect.Maps;
 import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
+import com.xuzp.apihelper.mockdata.MockDataProvider;
 import com.xuzp.apihelper.utils.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +38,6 @@ public abstract class BaseTemplate implements ITemplate {
             sb.append("{").append(LF);
             processJSONData(methodApiObj.getParams(), sb);
             sb.append(LF).append("}");
-//            String content = sb.toString()
-//                    .replaceAll("\"", "\\\\\"");
             return JsonHelper.beautify(sb.toString());
         }
         return null;
@@ -54,7 +53,6 @@ public abstract class BaseTemplate implements ITemplate {
         Map<String, String> params = Maps.newHashMap();
         params.put(Constants.PARAM_RESPONSE_JSON, getResponseValueData());
         String content = TemplateProvider.loadTemplate(Constants.RESPONSE_JSON_FTL, params);
-//                .replaceAll("\"", "\\\\\"");
         return JsonHelper.beautify(content);
     }
 
@@ -66,7 +64,7 @@ public abstract class BaseTemplate implements ITemplate {
     private String getResponseValueData() {
         if (CollectionUtils.isNotEmpty(methodApiObj.getReturns())) {
             if (methodApiObj.getReturns().size() == 1 && TypeHelper.isBasicType(methodApiObj.getReturns().get(0).getType())) {
-                return MockDataHelper.mockValue(methodApiObj.getReturns().get(0));
+                return MockDataProvider.mockValue(methodApiObj.getReturns().get(0));
             } else {
                 StringBuffer sb = new StringBuffer();
                 if (methodApiObj.getIsCollectionReturnType()) {
@@ -162,9 +160,9 @@ public abstract class BaseTemplate implements ITemplate {
                     sb.append(LF).append(isCollection ? "}]" : "}");
                 } else {
                     if (param.isBasicType()) {
-                        sb.append(MockDataHelper.mockValue(param));
+                        sb.append(MockDataProvider.mockValue(param));
                     } else {
-                        sb.append("\"" + param.getName() + "\": ").append(MockDataHelper.mockValue(param));
+                        sb.append("\"" + param.getName() + "\": ").append(MockDataProvider.mockValue(param));
                     }
                 }
             }

@@ -1,4 +1,4 @@
-package com.xuzp.apihelper.template.base;
+package com.xuzp.apihelper.template.core;
 
 /**
  * @author za-xuzhiping

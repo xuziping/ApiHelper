@@ -1,19 +1,25 @@
-package com.xuzp.apihelper.utils;
+package com.xuzp.apihelper.mockdata;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.xuzp.apihelper.core.Param;
+import com.xuzp.apihelper.properties.LoadProperties;
+import com.xuzp.apihelper.utils.TypeHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.xuzp.apihelper.utils.Constants.*;
 
@@ -22,9 +28,56 @@ import static com.xuzp.apihelper.utils.Constants.*;
  * @Date 2017/12/7
  * @Time 17:23
  */
-public class MockDataHelper {
+public class MockDataProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(MockDataHelper.class);
+    private static final Logger log = LoggerFactory.getLogger(MockDataProvider.class);
+
+    private static Map<DataType, String> mockDataMap = Maps.newHashMap();
+
+    static {
+        loadMockDataMap();
+    }
+
+    private synchronized static void loadMockDataMap() {
+        // 首先加载所有默认假数据
+        try {
+            loadMockDataMap(new ClassPathResource("mockData.properties").getInputStream());
+        } catch (Exception e) {
+            log.error("加载默认假数据文件失败，异常={}", e);
+        }
+
+        // 如果用户有自定义假数据，覆盖默认值
+        String path = LoadProperties.getProperties().getMockDataPath();
+        if (StringUtils.isNotBlank(path)) {
+            File mockDataFile = new File(path);
+            if (!mockDataFile.exists() || !mockDataFile.isFile()) {
+                log.warn("用戶指定的假数据文件不存在，路径={}", mockDataFile.getAbsolutePath());
+            } else {
+                try {
+                    loadMockDataMap(new FileInputStream(mockDataFile));
+                } catch (Exception e) {
+                    log.error("加载用户自定义假数据文件失败，异常={}", e);
+                }
+            }
+        }
+    }
+
+    private static void loadMockDataMap(InputStream inputStream) throws Exception {
+        Properties props = new Properties();
+        props.load(inputStream);
+        Arrays.stream(DataType.values()).forEach(x -> {
+            String value = props.getProperty(x.getCode());
+            if (value == null) {
+                value = props.getProperty(x.getCode().toLowerCase());
+            }
+            if (value == null) {
+                value = props.getProperty(x.getCode().toUpperCase());
+            }
+            if (value != null) {
+                mockDataMap.put(x, value);
+            }
+        });
+    }
 
     /**
      * 按照参数类型返回假数据，用来填充参数请求和返回请求
@@ -41,7 +94,6 @@ public class MockDataHelper {
         }
     }
 
-
     private static String mockValue(Type type, int level) throws Exception {
 
         if (level > MAX_RECURSION) {
@@ -51,21 +103,21 @@ public class MockDataHelper {
         String typeName = TypeHelper.fixTypeName(type.getTypeName());
         if (typeName.equalsIgnoreCase(TypeHelper.fixTypeName(Long.class.getName()))
                 || typeName.equals(TypeHelper.fixTypeName(long.class.getName()))) {
-            return "\"1235678\"";
+            return mockDataMap.get(DataType.LONG);
         } else if (typeName.equalsIgnoreCase(TypeHelper.fixTypeName(Integer.class.getName()))
                 || typeName.equals(TypeHelper.fixTypeName(int.class.getName()))) {
-            return "\"1\"";
+            return mockDataMap.get(DataType.INTEGER);
         } else if (typeName.equalsIgnoreCase(TypeHelper.fixTypeName(String.class.getName()))) {
-            return "\"abc\"";
+            return mockDataMap.get(DataType.STRING);
         } else if (typeName.equalsIgnoreCase(TypeHelper.fixTypeName(Boolean.class.getName()))
                 || typeName.equals(TypeHelper.fixTypeName(boolean.class.getName()))) {
-            return "true";
+            return mockDataMap.get(DataType.BOOLEAN);
         } else if (STRING_LIST_TYPE_NAME.equals(type.getTypeName())) {
-            return "[\"aaa\",\"bbb\",\"ccc\"]";
+            return mockDataMap.get(DataType.LIST_STRING);
         } else if (LONG_LIST_TYPE_NAME.equals(type.getTypeName())) {
-            return "[1111, 2222, 3333]";
+            return mockDataMap.get(DataType.LIST_LONG);
         } else if (INTEGER_LIST_TYPE_NAME.equals(type.getTypeName())) {
-            return "[1, 2, 3]";
+            return mockDataMap.get(DataType.LIST_INTEGER);
         } else if (TypeHelper.isEnumType(type)) {
             try {
                 Object[] enumObjs = Class.forName(type.getTypeName()).getEnumConstants();
@@ -77,15 +129,15 @@ public class MockDataHelper {
             Type[] children = ((ParameterizedTypeImpl) type).getActualTypeArguments();
             return String.format("{%s: %s}", mockValue(children[0], level + 1), mockValue(children[1], level + 1));
         } else if (type.getTypeName().equals(Date.class.getName())) {
-            return "\"2017/01/01\"";
+            return mockDataMap.get(DataType.DATE);
         } else if (type.getTypeName().equals(BigDecimal.class.getName())) {
-            return "\"0.5\"";
+            return mockDataMap.get(DataType.BIGDECIMAL);
         } else if (type.getTypeName().equals(Void.class.getName())) {
             return "";
         } else if (type.getTypeName().equalsIgnoreCase(Object.class.getTypeName())) {
-            return "\"objectString\"";
+            return mockDataMap.get(DataType.OBJECT);
         } else if (TypeHelper.isMultipartFile(type)) {
-            return "\"上传文件\"";
+            return mockDataMap.get(DataType.MULTIPARTFILE);
         }
 
         if (type instanceof ParameterizedType) {
@@ -135,16 +187,13 @@ public class MockDataHelper {
                 /** 处理非枚举类型字段以及非基本类型字段的自定义对象字段 */
                 else if (!TypeHelper.isEnumType(field.getType()) && !TypeHelper.isBasicType(field.getGenericType())) {
                     sb.append("\"" + field.getName() + "\": " + mockValue(field.getGenericType(), level + 1));
-                }
-
-                else {
+                } else {
                     sb.append("\"" + field.getName() + "\": " + mockValue(field.getGenericType(), level + 1));
                 }
             }
-            return sb.length() > 0 ? sb.toString(): "{}";
+            return sb.length() > 0 ? sb.toString() : "{}";
         }
 
-
-        return  "目前无法解析" + type.getTypeName();
+        return "目前无法解析" + type.getTypeName();
     }
 }

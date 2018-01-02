@@ -6,13 +6,13 @@ import com.google.gson.Gson;
 import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.properties.LoadProperties;
-import com.xuzp.apihelper.template.base.BaseTemplate;
+import com.xuzp.apihelper.template.core.BaseTemplate;
 import com.xuzp.apihelper.template.postman.enums.BodyModeEnum;
 import com.xuzp.apihelper.template.postman.enums.ContentTypeEnum;
 import com.xuzp.apihelper.template.postman.node.*;
 import com.xuzp.apihelper.utils.Constants;
 import com.xuzp.apihelper.utils.JsonHelper;
-import com.xuzp.apihelper.utils.MockDataHelper;
+import com.xuzp.apihelper.mockdata.MockDataProvider;
 import com.xuzp.apihelper.utils.UrlHelper;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -115,7 +115,7 @@ public class PostmanTemplate extends BaseTemplate {
         QueryNode queryNode = new QueryNode();
         queryNode.setEquals(Boolean.TRUE);
         queryNode.setKey(param.getName());
-        queryNode.setValue(MockDataHelper.mockValue(param));
+        queryNode.setValue(MockDataProvider.mockValue(param));
         return queryNode;
     }
 

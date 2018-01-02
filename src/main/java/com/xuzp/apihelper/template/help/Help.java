@@ -2,7 +2,7 @@ package com.xuzp.apihelper.template.help;
 
 import com.google.common.collect.Maps;
 import com.xuzp.apihelper.utils.Constants;
-import com.xuzp.apihelper.utils.TemplateProvider;
+import com.xuzp.apihelper.template.core.TemplateProvider;
 
 /**
  * @author za-xuzhiping

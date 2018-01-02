@@ -2,9 +2,7 @@
 
 
 ----------
-Generates raw comments for ApiDoc to parse and generate the API documents. 
-
-For now, API Helper generate ApiDoc, Postman and Markdown files under different folders after run once.
+Generate API documents including ApiDoc and Markdown formats. Also generate Postman importing file.
 
 ## Usage ##
 
@@ -13,26 +11,26 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
         1.  Install nodejs: http://nodejs.cn/download
         2.  Install apidoc: npm install -g apidoc 
 
-2. When ApiDoc is ready, please  create a property file called "*apiHelper.properties*" and set necessary properties. Please refer to the *Configuration* part.
+2. When ApiDoc is ready, please  create a property file called "*apiHelper.properties*" and set necessary properties. Please refer to the *Configuration* part for the details.
 
-3. Please copy templates from src/main/resources/template under your "templatePath". For now, there are four templates:
+3. If you want to design your own template, please write your templates under "templatePath". For now, there are FOUR templates:
 
 		apidoc_template.ftl
-		It is the whole template for ApiDoc. We don't suggest you to change it.
+		It is the whole template for ApiDoc. We don't suggest you to override.
 
 		markdown_template.ftl
-		It is the whole template for Markdown. 
-		You could re-write it with your pleasure. Please refer to the "How to write your own templates" part before you re-design.
+		It is the whole template for Markdown. Please override it with your pleasure.
 
 		response_json.ftl
 		It is the response json template. 
-		Because different company/teams have different return json format, please feel free to re-design it. 
+		Because different companies/teams have different RESPONSE json data format, please feel free to override it. 
 
 		help.ftl
-		It is not so useful, the help message just displays in console after run the program.
-		When you re-design your templates, you might write your help messages here. 
+		It shows message in Console after run the program.
 
-4. After set the properties, you could double click **runApiHelper.bat** directly, it would generate __autoAPI. Of course, you could run it manually as well:
+	If you don't want to override any template, please skip this step; Otherwise, please refer to “How to write your own templates” for more details.
+
+4. After set the properties, you could double click **runApiHelper.bat** directly, it would generate __autoAPI and final folders. Of course, you could run it manually as well:
 
 	    # generate temp files： __autoAPI/apidoc 和 __autoAPI/postman 
 		java -jar ApiHelper.jar 
@@ -49,31 +47,48 @@ For now, API Helper generate ApiDoc, Postman and Markdown files under different 
 
 5. Import APIs into Postman
        
-		Open Postman tool and click the Import button，please choose __autoAPI/postman/postman.json to upload.
+		Open Postman tool and click the Import button，please choose "__autoAPI/postman/postman.json" to upload.
 
+		For now, it just generates JSON format request data and not support FORM data type.
+
+6. apidoc
+
+		The default ApiDoc folder is called "final".
+
+7. markdown
+
+		All markdown files are under "__autoAPI/markdown/" by default. Please copy the content into your wiki.
 
 ## Configuration ##
  
 	# Necessary setting
-    # Please set your project/module home here
-	# It would be great when "$modulePath/src/main/java" and "$modulePath/target/classes" folders exist.
+    # Please set your project/module home directory here
+	# It would be nice if "$modulePath/src/main/java" and "$modulePath/target/classes" folder exists.
     modulePath=D:/workspace/tcc
+
+	# Optional setting
+    # Output directory
+    # NOTICE: Program would use "__autoAPI" by default.
+    outputPath=__autoAPI
    
-	# Ncessary setting
+	# Optional setting
 	# Please set your template directory here.
 	# The program would locate freemarker templates including "apidoc_template.ftl", "markdown_template.ftl", "response_json.ftl" and "help.ftl" files under the directory.
+    # If templates are not found under the directory, the program would use the default templates.
+	# Please read the “How to write your own templates” part for more details.
 	templatePath=template
+
+	# Optional setting
+	# Please set your mock data file path here.
+    # If some data type can not found in this property file, the program will use the default settings.
+	# Please read the “How to use your own mock data” part for more details.
+	mockDataPath=mockData.properties
 
 	# Optional setting
     # This path is to parse code comments. 
 	# It supports more than one path, please split by ';'
     # NOTICE: Program would add "$modulePath/src/main/java" by default.
     commentPath=D:/workspace/tcc/service;D:/workspace/tcc/dto
-    
-	# Optional setting
-    # Output directory
-    # NOTICE: Program would use "__autoAPI" by default.
-    outputPath=__autoAPI
     
 	# Optional setting
     # Please add your class folder path and the JAR file path here. 
@@ -103,13 +118,12 @@ Here are some examples:
 	# Example
     modulePath=D:/workspace/tcc
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
-	template=template
 
 	# Example
     commentPath=D:/workspace/tcc
 	servicePath=D:/workspace/tcc/service
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
-	template=template
+	mockDataPath=mockData.properties
 
 	# Example
     modulePath=D:/workspace/tcc
@@ -127,7 +141,7 @@ Here are some examples:
 
 ## How to write your own templates ##
 
-Sometimes, it is possible that you want to design your own ApiDoc or Markdown templates. Please refer to the following PARAMs which are valid in **apidoc_template.ftl** and **markdown_template.ftl**
+Sometimes, it is possible that you want to design your own ApiDoc or Markdown templates. Please refer to the following PARAMs which are useful in **apidoc_template.ftl** and **markdown_template.ftl**
 
 
 | PARAM NAME      | TYPE | DESC |
@@ -144,7 +158,9 @@ Sometimes, it is possible that you want to design your own ApiDoc or Markdown te
 
 > Postman file is based on V2.1 Collection format, it is NOT necessary to design its template any more. Thus we not support Postman Template under templatePath for now.
 
-> The default templates are under src/main/resources/template, please feel free to check them.
+> The default templates are under src/main/resources/template, please feel free to copy and change them in your own template folder, and please remember to add "templatePath" property in "apiHelper.properties". 
+
+> If you only want to re-design ONE template (like "markdown_template.ftl") (and other templates are still using the default ones), please just put the "markdown_template.ftl" under your template path.
 
 **apidoc_template.ftl**
 
@@ -209,7 +225,7 @@ Sometimes, it is possible that you want to design your own ApiDoc or Markdown te
 	"msg": "",
 	"additionalInfo": {},
 	<#if RESPONSE_JSON??>
-	"value": ${RESPONSE_JSON},
+	"defaultValue": ${RESPONSE_JSON},
 	</#if>
 	"success": true
 	}
@@ -231,6 +247,45 @@ The project is based on Maven. Thus please clean and package the project using  
 	
 	mvn clean
 	mvn package 
+
+
+## How to use your own mock data ##
+
+Default mock data are like this:
+
+
+| Data Type      | Mock Value | Desc |
+| :-------- | :--------: | --------:|
+| String | "abc" | string format |
+| Date | "2018-01-01" | date format |
+| Long | "12345678" | long or Long format |
+| Integer | "1" | int or Integer format |
+| Boolean | true | boolean or Boolean format |
+| List<String> | ["aaa","bbb","ccc"] | |
+| List<Integer> | [1, 2, 3] | |
+| List<Long> | [111,222,333] | |
+| BigDecimal | "0.5" | BigDecimal format |
+| MultipartFile | "上传文件" | MultipartFile format, but now could NOT support yet |
+| Object | "objectString" | Object format |
+
+
+> The default mock data property file is "src/main/resources/mockData.properties", please feel free to copy and change it in your own path, and please remember to add "mockDataPath" property in "apiHelper.properties". 
+
+> If you want to override SOME mock data (like "Date") (and other values are still using the default ones), please set "Date" property in your "mockData.properties" only.
+
+**default mockData.properties**
+
+	String="abc"
+	Date="2018-01-01"
+	Long="12345678"
+	Integer="1"
+	Boolean=true
+	List<String>=["aaa","bbb","ccc"]
+	List<Integer>=[1, 2, 3]
+	List<Long>=[111,222,333]
+	BigDecimal="0.5"
+	MultipartFile="上传文件"
+	Object="objectString"
 
 
 ## About how to write comments in Java code ##

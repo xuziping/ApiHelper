@@ -37,7 +37,8 @@ public class LoadProperties {
                 apiHelperProperties.setModulePath(getProperty(props, Constants.MODULE_PATH, ""));
                 apiHelperProperties.setRequestURL(getProperty(props, Constants.REQUEST_URL, Constants.DEFAULT_REQUEST_URL));
                 apiHelperProperties.setPagableClassName(getProperty(props, Constants.PAGABLE_CLASS_NAME, Constants.DEFAULT_PAGABLE_CLASS_NAME));
-                apiHelperProperties.setTemplatePath(getProperty(props, Constants.TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH));
+                apiHelperProperties.setTemplatePath(getProperty(props, Constants.TEMPLATE_PATH, ""));
+                apiHelperProperties.setMockDataPath(getProperty(props, Constants.MOCK_DATA_PATH, ""));
             }
 
             ret = true;

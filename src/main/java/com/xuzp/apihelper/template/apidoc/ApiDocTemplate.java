@@ -1,7 +1,7 @@
 package com.xuzp.apihelper.template.apidoc;
 
 import com.xuzp.apihelper.core.MethodApiObj;
-import com.xuzp.apihelper.template.base.BaseTemplate;
+import com.xuzp.apihelper.template.core.BaseTemplate;
 import com.xuzp.apihelper.utils.Constants;
 import org.apache.commons.lang3.StringUtils;
 

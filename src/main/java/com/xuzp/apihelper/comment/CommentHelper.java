@@ -111,7 +111,7 @@ public class CommentHelper {
         String value = getCommentStr(var);
         if (StringUtils.isNoneBlank(value)) {
             commentPair = new CommentPair(key, value);
-            log.info("commentPair={}", commentPair);
+            log.debug("commentPair, key={}, value={}", key, value);
         }
         return commentPair;
     }
@@ -133,7 +133,7 @@ public class CommentHelper {
             String value = getCommentStr(anno);
             if (StringUtils.isNoneBlank(value)) {
                 commentPair = new CommentPair(key, value);
-                log.info("commentPair={}", commentPair);
+                log.debug("commentPair, key={}, value={}", key, value);
             }
         }
         return commentPair;
@@ -150,7 +150,7 @@ public class CommentHelper {
                 value = getCommentContent(value);
                 if (StringUtils.isNoneBlank(value)) {
                     commentPair = new CommentPair(key, value);
-                    log.info("commentPair={}", commentPair);
+                    log.debug("commentPair, key={}, value={}", key, value);
                 }
             }
         }
