@@ -155,7 +155,7 @@ public class PostmanTemplate extends BaseTemplate {
     private BodyNode bodyNode() {
         BodyNode bodyNode = new BodyNode();
         bodyNode.setMode(BodyModeEnum.RAW.getValue());
-        bodyNode.setRaw(getRequestJson());
+        bodyNode.setRaw(getRequestJson(false));
         return bodyNode;
     }
 

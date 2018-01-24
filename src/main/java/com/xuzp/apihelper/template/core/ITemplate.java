@@ -13,7 +13,7 @@ public interface ITemplate {
      * 获取请求Json
      * @return
      */
-    String getRequestJson();
+    String getRequestJson(boolean showComments);
 
     /**
      * 获取返回Json

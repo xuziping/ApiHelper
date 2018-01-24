@@ -17,8 +17,8 @@ public class MarkdownTemplate extends BaseTemplate {
     }
 
     @Override
-    public String getRequestJson() {
-        return fixJson(super.getRequestJson());
+    public String getRequestJson(boolean showComments) {
+        return fixJson(super.getRequestJson(showComments));
     }
 
     @Override

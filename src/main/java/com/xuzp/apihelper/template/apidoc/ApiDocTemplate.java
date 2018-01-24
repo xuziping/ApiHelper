@@ -29,8 +29,8 @@ public class ApiDocTemplate extends BaseTemplate {
     }
 
     @Override
-    public String getRequestJson() {
-        return fixJson(super.getRequestJson());
+    public String getRequestJson(boolean showComment) {
+        return fixJson(super.getRequestJson(showComment));
     }
 
     @Override

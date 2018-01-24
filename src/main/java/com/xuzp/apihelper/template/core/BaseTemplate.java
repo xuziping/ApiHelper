@@ -36,13 +36,13 @@ public abstract class BaseTemplate implements ITemplate {
     }
 
     @Override
-    public String getRequestJson() {
+    public String getRequestJson(boolean showComment) {
         if (CollectionUtils.isNotEmpty(methodApiObj.getParams())) {
             StringBuffer sb = new StringBuffer();
             sb.append("{").append(LF);
-            processJSONData(methodApiObj.getParams(), sb);
+            processJSONData(methodApiObj.getParams(), sb, showComment);
             sb.append(LF).append("}");
-            if (LoadProperties.getProperties().getShowJSONComment()) {
+            if (showComment) {
                 return sb.toString();
             }
             return JsonHelper.beautify(sb.toString());
@@ -82,7 +82,8 @@ public abstract class BaseTemplate implements ITemplate {
                 } else {
                     sb.append("{").append(LF);
                 }
-                processJSONData(methodApiObj.getReturns(), sb);
+                boolean showComment = LoadProperties.getProperties().getShowJSONComment();
+                processJSONData(methodApiObj.getReturns(), sb, showComment);
                 if (methodApiObj.getIsCollectionReturnType()) {
                     sb.append("}]");
                 } else {
@@ -147,7 +148,7 @@ public abstract class BaseTemplate implements ITemplate {
             params.put(Constants.PARAM_LABELNAME, methodApiObj.getLabelName());
             params.put(Constants.PARAM_PARAM_LIST, getParamList());
 //            params.put(Constants.PARAM_PARAM_LIST_STRING, getParamListString());
-            params.put(Constants.PARAM_REQUEST_JSON, getRequestJson());
+            params.put(Constants.PARAM_REQUEST_JSON, getRequestJson(LoadProperties.getProperties().getShowJSONComment()));
             params.put(Constants.PARAM_RESPONSE_JSON, getResponseJson());
             return TemplateProvider.loadTemplate(template, params);
         }
@@ -157,9 +158,9 @@ public abstract class BaseTemplate implements ITemplate {
     /**
      * 处理出参和入参JSON内容的示例，递归处理
      */
-    public static void processJSONData(List<Param> params, StringBuffer sb) {
+    public static void processJSONData(List<Param> params, StringBuffer sb, boolean showComment) {
         if (CollectionUtils.isNotEmpty(params)) {
-            boolean showComment = LoadProperties.getProperties().getShowJSONComment();
+
 
             for (int i = 0; i < params.size(); i++) {
                 Param param = params.get(i);
@@ -183,7 +184,7 @@ public abstract class BaseTemplate implements ITemplate {
                         sb.append("\"" + param.getName() + "\": ")
                                 .append(isCollection ? "[{" : "{").append(LF);
                     }
-                    processJSONData(param.getChildren(), sb);
+                    processJSONData(param.getChildren(), sb, showComment);
                     sb.append(LF).append(isCollection ? "}]" : "}");
                 } else {
                     if (param.isBasicType()) {
