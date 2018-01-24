@@ -1,5 +1,7 @@
 package com.xuzp.apihelper.template.core;
 
+import java.util.List;
+
 /**
  * @author za-xuzhiping
  * @Date 2017/12/22
@@ -23,7 +25,13 @@ public interface ITemplate {
      * 获取请求参数列表
      * @return
      */
-    String getParamList();
+    String getParamListString();
+
+    /**
+     * 获取请求参数列表
+     * @return
+     */
+    List<ParamVO> getParamList();
 
     /**
      * 获取最终生成内容

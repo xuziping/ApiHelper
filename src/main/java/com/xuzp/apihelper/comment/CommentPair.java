@@ -8,15 +8,15 @@ package com.xuzp.apihelper.comment;
 
 public class CommentPair {
     private String key;
-    private String commnent;
+    private CommentObj comment;
 
-    public CommentPair(){
+    public CommentPair() {
 
     }
 
-    public CommentPair(String key, String comment) {
+    public CommentPair(String key, CommentObj comment) {
         this.key = key;
-        this.commnent = comment;
+        this.comment = comment;
     }
 
     public String getKey() {
@@ -27,11 +27,11 @@ public class CommentPair {
         this.key = key;
     }
 
-    public String getCommnent() {
-        return commnent;
+    public CommentObj getComment() {
+        return comment;
     }
 
-    public void setCommnent(String commnent) {
-        this.commnent = commnent;
+    public void setComment(CommentObj comment) {
+        this.comment = comment;
     }
 }

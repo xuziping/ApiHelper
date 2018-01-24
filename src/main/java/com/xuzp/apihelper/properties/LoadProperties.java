@@ -39,6 +39,7 @@ public class LoadProperties {
                 apiHelperProperties.setPagableClassName(getProperty(props, Constants.PAGABLE_CLASS_NAME, Constants.DEFAULT_PAGABLE_CLASS_NAME));
                 apiHelperProperties.setTemplatePath(getProperty(props, Constants.TEMPLATE_PATH, ""));
                 apiHelperProperties.setMockDataPath(getProperty(props, Constants.MOCK_DATA_PATH, ""));
+                apiHelperProperties.setShowJSONComment(getProperty(props, Constants.SHOW_JSON_COMMENT, "false").equals("true"));
             }
 
             ret = true;

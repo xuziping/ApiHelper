@@ -1,10 +1,14 @@
 package com.xuzp.apihelper.template.core;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.xuzp.apihelper.core.MethodApiObj;
 import com.xuzp.apihelper.core.Param;
 import com.xuzp.apihelper.mockdata.MockDataProvider;
-import com.xuzp.apihelper.utils.*;
+import com.xuzp.apihelper.properties.LoadProperties;
+import com.xuzp.apihelper.utils.Constants;
+import com.xuzp.apihelper.utils.JsonHelper;
+import com.xuzp.apihelper.utils.TypeHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
@@ -38,6 +42,9 @@ public abstract class BaseTemplate implements ITemplate {
             sb.append("{").append(LF);
             processJSONData(methodApiObj.getParams(), sb);
             sb.append(LF).append("}");
+            if (LoadProperties.getProperties().getShowJSONComment()) {
+                return sb.toString();
+            }
             return JsonHelper.beautify(sb.toString());
         }
         return null;
@@ -50,9 +57,12 @@ public abstract class BaseTemplate implements ITemplate {
      */
     @Override
     public String getResponseJson() {
-        Map<String, String> params = Maps.newHashMap();
+        Map<String, Object> params = Maps.newHashMap();
         params.put(Constants.PARAM_RESPONSE_JSON, getResponseValueData());
         String content = TemplateProvider.loadTemplate(Constants.RESPONSE_JSON_FTL, params);
+        if (LoadProperties.getProperties().getShowJSONComment()) {
+            return content;
+        }
         return JsonHelper.beautify(content);
     }
 
@@ -88,7 +98,14 @@ public abstract class BaseTemplate implements ITemplate {
      * 返回参数列表
      */
     @Override
-    public String getParamList() {
+    public List<ParamVO> getParamList() {
+        List<ParamVO> ret = Lists.newArrayList();
+        processParamList(methodApiObj.getParams(), ret, "");
+        return ret.size() > 0 ? ret : null;
+    }
+
+    @Override
+    public String getParamListString() {
         String template = getParamListTemplate();
         if (StringUtils.isNoneEmpty(template)) {
             StringBuffer sb = new StringBuffer();
@@ -100,25 +117,28 @@ public abstract class BaseTemplate implements ITemplate {
 
     /**
      * 返回参数列表模板名
+     *
      * @return
      */
     public abstract String getParamListTemplate();
 
     /**
      * 返回整个API模板名
+     *
      * @return
      */
     public abstract String getWholeTemplate();
 
     /**
      * 获取最终生成内容
+     *
      * @return
      */
     @Override
     public String getContent() {
         String template = getWholeTemplate();
         if (StringUtils.isNotEmpty(template)) {
-            Map<String, String> params = Maps.newHashMap();
+            Map<String, Object> params = Maps.newHashMap();
             params.put(Constants.PARAM_PATH, methodApiObj.getPath());
             params.put(Constants.PARAM_DESC, methodApiObj.getDesc());
             params.put(Constants.PARAM_APINAME, methodApiObj.getName());
@@ -126,6 +146,7 @@ public abstract class BaseTemplate implements ITemplate {
             params.put(Constants.PARAM_APIMETHOD, methodApiObj.getApiMethod());
             params.put(Constants.PARAM_LABELNAME, methodApiObj.getLabelName());
             params.put(Constants.PARAM_PARAM_LIST, getParamList());
+//            params.put(Constants.PARAM_PARAM_LIST_STRING, getParamListString());
             params.put(Constants.PARAM_REQUEST_JSON, getRequestJson());
             params.put(Constants.PARAM_RESPONSE_JSON, getResponseJson());
             return TemplateProvider.loadTemplate(template, params);
@@ -138,11 +159,17 @@ public abstract class BaseTemplate implements ITemplate {
      */
     public static void processJSONData(List<Param> params, StringBuffer sb) {
         if (CollectionUtils.isNotEmpty(params)) {
+            boolean showComment = LoadProperties.getProperties().getShowJSONComment();
+
             for (int i = 0; i < params.size(); i++) {
                 Param param = params.get(i);
-                if (i > 0) {
-                    sb.append(",").append(LF);
-                }
+//                if (i > 0) {
+//                    sb.append(",");
+//                    if(StringUtils.isNotEmpty(lastParamDesc)) {
+//                        sb.append("\t// " + lastParamDesc );
+//                    }
+//                    sb.append(LF);
+//                }
 
                 if (CollectionUtils.isNotEmpty(param.getChildren())) {
                     boolean isCollection = false;
@@ -165,6 +192,18 @@ public abstract class BaseTemplate implements ITemplate {
                         sb.append("\"" + param.getName() + "\": ").append(MockDataProvider.mockValue(param));
                     }
                 }
+
+                if (i < params.size() - 1) {
+                    sb.append(",");
+                    if (showComment && StringUtils.isNotEmpty(param.getDesc())) {
+                        sb.append("\t// " + param.getDesc());
+                    }
+                    sb.append(LF);
+                } else {
+                    if (showComment && StringUtils.isNotEmpty(param.getDesc())) {
+                        sb.append("\t// " + param.getDesc());
+                    }
+                }
             }
         }
     }
@@ -181,9 +220,29 @@ public abstract class BaseTemplate implements ITemplate {
                 sb.append(template
                         .replaceAll("`PARAM_TYPE`", TypeHelper.fixTypeName(param.getType().getTypeName()))
                         .replaceAll("`PARAM_NAME`", prefixName + param.getName())
-                        .replaceAll("`PARAM_DESC`", param.getDesc()));
+                        .replaceAll("`PARAM_DESC`", param.getDesc())
+                        .replaceAll("`PARAM_IS_OPTIONAL`", param.getOptional() ? "非必填" : "必填"));
                 if (CollectionUtils.isNotEmpty(param.getChildren())) {
                     processParamList(param.getChildren(), sb, param.getName() + ".", template);
+                }
+            });
+        }
+    }
+
+    /**
+     * 递归处理参数列表
+     */
+    private void processParamList(List<Param> params, List<ParamVO> results, String prefixName) {
+        if (CollectionUtils.isNotEmpty(params)) {
+            params.forEach(param -> {
+                ParamVO paramVO = new ParamVO();
+                paramVO.setType(TypeHelper.fixTypeName(param.getType().getTypeName()));
+                paramVO.setName(prefixName + param.getName());
+                paramVO.setDesc(param.getDesc());
+                paramVO.setOptional(param.getOptional());
+                results.add(paramVO);
+                if (CollectionUtils.isNotEmpty(param.getChildren())) {
+                    processParamList(param.getChildren(), results, param.getName() + ".");
                 }
             });
         }

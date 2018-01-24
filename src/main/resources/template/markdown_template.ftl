@@ -10,9 +10,11 @@
 
 <#if PARAM_LIST??>
 #####   请求参数
-| 参数名      | 类型 | 说明|
-| :-------- | :--------| :--: |
-${PARAM_LIST}
+| 参数名      | 类型 | 说明| 是否可选 |
+| :-------- | :--------| :-- | --: |
+    <#list PARAM_LIST as param>
+     ${param.name} | ${param.type} | ${param.desc} | ${param.isOptional?string("可选","**必选**")}
+    </#list>
 </#if>
 
 <#if REQUEST_JSON??>

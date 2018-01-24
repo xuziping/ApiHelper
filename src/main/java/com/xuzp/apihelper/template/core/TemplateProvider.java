@@ -75,7 +75,7 @@ public class TemplateProvider {
         return null;
     }
 
-    public static String loadTemplate(String templateName, Map<String, String> params) {
+    public static String loadTemplate(String templateName, Map<String, Object> params) {
         try {
             Template template = cfg.getTemplate(templateName);
             StringWriter out = new StringWriter();

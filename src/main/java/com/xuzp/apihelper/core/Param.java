@@ -31,6 +31,11 @@ public class Param {
     private String defaultValue;
 
     /**
+     * 是否可选参数
+     */
+    private Boolean isOptional;
+
+    /**
      * 是否基础类型，如int,String等
      */
     private boolean isBasicType = false;
@@ -44,12 +49,13 @@ public class Param {
 
     }
 
-    public Param(Type type, String name, String desc, String defaultValue, List<Param> children){
+    public Param(Type type, String name, String desc, String defaultValue, List<Param> children, boolean isOptional){
         this.type = type;
         this.name = name;
         this.desc = desc;
         this.defaultValue = defaultValue;
         this.children = children;
+        this.isOptional = isOptional;
     }
 
     public Type getType() {
@@ -98,5 +104,13 @@ public class Param {
 
     public void setChildren(List<Param> children) {
         this.children = children;
+    }
+
+    public Boolean getOptional() {
+        return isOptional;
+    }
+
+    public void setOptional(Boolean optional) {
+        isOptional = optional;
     }
 }

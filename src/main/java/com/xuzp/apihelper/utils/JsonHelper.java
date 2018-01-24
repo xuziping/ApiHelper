@@ -25,7 +25,7 @@ public class JsonHelper {
                 JsonElement jsonEl = jsonPar.parse(content);
                 return gson.toJson(jsonEl);
             } catch(Exception e) {
-                log.warn("格式化Json失败, 内容={}, 异常={}", content, e);
+                log.warn("格式化Json失败, 内容={}, 异常={}", content, e.getMessage());
                 return content;
             }
         }

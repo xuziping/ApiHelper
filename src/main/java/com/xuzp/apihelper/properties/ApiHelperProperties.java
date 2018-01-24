@@ -58,6 +58,11 @@ public class ApiHelperProperties {
      */
     private String mockDataPath;
 
+    /**
+     * 是否在ApiDoc和markdown的Request/Response JSON中显示注释
+     */
+    private  Boolean showJSONComment;
+
     public String getServicePath(){
         if (StringUtils.isNoneBlank(servicePath)) {
             return servicePath;
@@ -160,5 +165,13 @@ public class ApiHelperProperties {
 
     public void setMockDataPath(String mockDataPath) {
         this.mockDataPath = mockDataPath;
+    }
+
+    public Boolean getShowJSONComment() {
+        return showJSONComment;
+    }
+
+    public void setShowJSONComment(Boolean showJSONComment) {
+        this.showJSONComment = showJSONComment;
     }
 }

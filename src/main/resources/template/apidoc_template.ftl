@@ -9,7 +9,9 @@
  * @apiDescription <b>使用说明：</b>${DESC}
 </#if>
 <#if PARAM_LIST??>
-${PARAM_LIST}
+ <#list PARAM_LIST as param>
+ * @apiParam ${param.type} ${param.name} ${param.desc}
+ </#list>
 </#if>
 <#if REQUEST_JSON??>
  * @apiParamExample {json} 接口请求入参示例

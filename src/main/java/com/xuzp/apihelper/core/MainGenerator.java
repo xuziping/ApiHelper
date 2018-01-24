@@ -3,6 +3,7 @@ package com.xuzp.apihelper.core;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.xuzp.apihelper.comment.CommentHelper;
+import com.xuzp.apihelper.comment.CommentObj;
 import com.xuzp.apihelper.properties.ApiHelperProperties;
 import com.xuzp.apihelper.properties.LoadProperties;
 import com.xuzp.apihelper.template.apidoc.ApiDocTemplate;
@@ -164,8 +165,8 @@ public class MainGenerator {
                 api.setPath(path);
                 api.setName(apiGroup + File.separator + path);
 
-                String description = CommentHelper.getComment(cls, path);
-                description = description != null ? description : "";
+                CommentObj commentObj = CommentHelper.getComment(cls, path);
+                String description = commentObj != null ? commentObj.getShortComment() : "";
                 log.debug("作用: {}", description);
                 api.setDesc(description);
 
@@ -183,7 +184,7 @@ public class MainGenerator {
                     if (CollectionUtils.isNotEmpty(params)) {
                         String paramName = CommentHelper.getParameterName(cls, method);
                         params.stream().filter(x -> StringUtils.isBlank(x.getName())).forEach(x -> {
-                            x.setName(StringUtils.isNotEmpty(paramName) ? paramName: parameter.getName());
+                            x.setName(StringUtils.isNotEmpty(paramName) ? paramName : parameter.getName());
                         });
                     }
                     api.setParams(params);
@@ -198,7 +199,7 @@ public class MainGenerator {
                 if (TypeHelper.isBasicType(returnType) ||
                         TypeHelper.isVoid(returnType)) {
                     log.debug("返回值: 基础数据类型 {}", returnType.getTypeName());
-                    Param param = new Param(returnType, null, null, null, null);
+                    Param param = new Param(returnType, null, null, null, null,Boolean.FALSE );
                     param.setBasicType(true);
                     api.setReturns(Lists.newArrayList(param));
                     api.setIsCollectionReturnType(Boolean.FALSE);
@@ -222,7 +223,8 @@ public class MainGenerator {
         if (level > MAX_RECURSION) {
             log.warn("递归达到极限值，怀疑参数循环引用");
             return Lists.newArrayList(
-                    new Param(String.class, fixTypeName(type.getTypeName()), "怀疑参数循环引用", "怀疑参数循环引用", null));
+                    new Param(String.class, fixTypeName(type.getTypeName()), "怀疑参数循环引用",
+                            "怀疑参数循环引用", null, Boolean.FALSE));
         }
 
         if (type instanceof ParameterizedType) {
@@ -234,11 +236,11 @@ public class MainGenerator {
         }
         if (TypeHelper.isMultipartFile(type)) {
             return Lists.newArrayList(
-                    new Param(type, "", "上传文件", null, null));
+                    new Param(type, "", "上传文件", null, null, Boolean.TRUE));
         }
         if (TypeHelper.isBasicType(type)) {
             return Lists.newArrayList(
-                    new Param(type, "", "", null, null));
+                    new Param(type, "", "", null, null, Boolean.TRUE));
         }
         Class cls = null;
         try {
@@ -280,9 +282,13 @@ public class MainGenerator {
                 Param param = new Param();
                 param.setName(field.getName());
                 param.setType(field.getGenericType());
-                param.setDesc(CommentHelper.getComment(cls, field.getName()));
+
+                CommentObj commentObj = CommentHelper.getComment(cls, field.getName());
+                param.setDesc(commentObj != null ? commentObj.getShortComment() : "");
                 params.add(param);
                 log.debug(field.getGenericType().getTypeName() + " - " + field.getName());
+
+                param.setOptional(CommentHelper.isOptionalParam(commentObj));
 
                 /** 处理集合包装类型字段，如List等 */
                 if (TypeHelper.isCollection(field.getType())) {
@@ -331,13 +337,13 @@ public class MainGenerator {
      * 组装翻页请求参数
      */
     protected List<Param> getPagableParams(Class cls) throws Exception {
-        List<Param> params = Lists.newArrayList(new Param(Integer.class, "start", "起始记录", "1", null),
-                new Param(Integer.class, "pageIndex", "第几页", "1", null),
-                new Param(Integer.class, "limit", "最大查询数", "20", null)
+        List<Param> params = Lists.newArrayList(new Param(Integer.class, "start", "起始记录", "1", null, Boolean.TRUE),
+                new Param(Integer.class, "pageIndex", "第几页", "1", null, Boolean.TRUE),
+                new Param(Integer.class, "limit", "最大查询数", "20", null, Boolean.TRUE)
         );
         if (cls != null) {
             Param condition = new Param(Object.class, "condition", "查询条件", null,
-                    collectTypeInfo(cls, 1, true));
+                    collectTypeInfo(cls, 1, true), Boolean.TRUE);
             params.add(condition);
         }
         return params;
@@ -347,7 +353,7 @@ public class MainGenerator {
      * 组装翻页返回参数
      */
     protected List<Param> getPagableReturns() {
-        return Lists.newArrayList(new Param(Integer.class, "total", "总记录数", "32", null));
+        return Lists.newArrayList(new Param(Integer.class, "total", "总记录数", "32", null, Boolean.FALSE));
     }
 
     /**

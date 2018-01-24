@@ -103,6 +103,11 @@ Generate API documents including ApiDoc and Markdown formats. Also generate Post
     servicePath=D:/workspace/tcc/service
 
 	# Optional setting
+	# It controls if Param Descriptions show in ApiDoc/Markdown request/response json or not.
+	# NOTICE: If you don't set this property, it would not show comment in ApiDoc/Markdown request/response json.
+	showJSONComment=true
+
+	# Optional setting
     # NOTICE: Program would use "http://127.0.0.1:8080" by default.		
 	requestURL=http://www.tcc.com
 
@@ -175,7 +180,9 @@ Sometimes, it is possible that you want to design your own ApiDoc or Markdown te
 	 * @apiDescription <b>使用说明：</b>${DESC}
 	</#if>
 	<#if PARAM_LIST??>
-	${PARAM_LIST}
+	 <#list PARAM_LIST as param>
+	 * @apiParam ${param.type} ${param.name} ${param.desc}
+	 </#list>
 	</#if>
 	<#if REQUEST_JSON??>
 	 * @apiParamExample {json} 接口请求入参示例
@@ -202,9 +209,11 @@ Sometimes, it is possible that you want to design your own ApiDoc or Markdown te
 	
 	<#if PARAM_LIST??>
 	#####   请求参数
-	| 参数名      | 类型 | 说明|
-	| :-------- | :--------| :--: |
-	${PARAM_LIST}
+	| 参数名      | 类型 | 说明| 是否可选 |
+	| :-------- | :--------| :-- | --: |
+	    <#list PARAM_LIST as param>
+	     ${param.name} | ${param.type} | ${param.desc} | ${param.isOptional?string("可选","**必选**")}
+	    </#list>
 	</#if>
 	
 	<#if REQUEST_JSON??>

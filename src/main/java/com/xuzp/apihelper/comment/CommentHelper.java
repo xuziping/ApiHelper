@@ -60,7 +60,7 @@ public class CommentHelper {
     /**
      * 获取参数名称
      */
-    public static String getParameterName(Class cls, Method method)  {
+    public static String getParameterName(Class cls, Method method) {
         StringBuilder sb = new StringBuilder();
         CompilationUnit compilationUnit = compilationUnitMap.get(cls.getName());
         if (compilationUnit != null) {
@@ -68,14 +68,14 @@ public class CommentHelper {
                 compilationUnit.getChildNodes().stream().filter(x -> x instanceof ClassOrInterfaceDeclaration).findFirst().ifPresent(x -> {
                             x.getChildNodes().stream().filter(xm -> xm instanceof MethodDeclaration).forEach(m -> {
                                 if (((MethodDeclaration) m).getNameAsString().equalsIgnoreCase(method.getName())) {
-                                    m.getChildNodes().stream().filter(mp -> mp instanceof Parameter).findFirst().ifPresent(mp->{
-                                        sb.append(((Parameter)mp).getNameAsString());
+                                    m.getChildNodes().stream().filter(mp -> mp instanceof Parameter).findFirst().ifPresent(mp -> {
+                                        sb.append(((Parameter) mp).getNameAsString());
                                     });
                                 }
                             });
                         }
                 );
-            }catch(Exception e) {
+            } catch (Exception e) {
                 log.error("获取真实参数名失败，类={}，方法={}", cls.getName(), method.getName());
             }
         }
@@ -108,16 +108,16 @@ public class CommentHelper {
     private static CommentPair getCommentPair(VariableDeclarator var) {
         CommentPair commentPair = null;
         String key = var.getNameAsString();
-        String value = getCommentStr(var);
-        if (StringUtils.isNoneBlank(value)) {
+        CommentObj value = getCommentStr(var);
+        if (value != null) {
             commentPair = new CommentPair(key, value);
             log.debug("commentPair, key={}, value={}", key, value);
         }
         return commentPair;
     }
 
-    private static String getCommentStr(Node node) {
-        String result = null;
+    private static CommentObj getCommentStr(Node node) {
+        CommentObj result = null;
         if (node.getParentNode().isPresent() && node.getParentNode().get().getComment().isPresent()) {
             String value = node.getParentNode().get().getComment().get().getContent();
             result = getCommentContent(value);
@@ -130,10 +130,10 @@ public class CommentHelper {
         if (Constants.REQUEST_MAPPINGS.contains(anno.getNameAsString())) {
             String key = getKey(anno.getMemberValue());
             key = getCommentKey(key);
-            String value = getCommentStr(anno);
-            if (StringUtils.isNoneBlank(value)) {
-                commentPair = new CommentPair(key, value);
-                log.debug("commentPair, key={}, value={}", key, value);
+            CommentObj commentObj = getCommentStr(anno);
+            if (commentObj != null) {
+                commentPair = new CommentPair(key, commentObj);
+                log.debug("commentPair, key={}, value={}", key, commentObj);
             }
         }
         return commentPair;
@@ -147,9 +147,9 @@ public class CommentHelper {
                 String key = getKey(mvp.get().getValue());
                 key = getCommentKey(key);
                 String value = anno.getParentNode().get().getComment().get().getContent();
-                value = getCommentContent(value);
-                if (StringUtils.isNoneBlank(value)) {
-                    commentPair = new CommentPair(key, value);
+                CommentObj commentObj = getCommentContent(value);
+                if (commentObj != null) {
+                    commentPair = new CommentPair(key, commentObj);
                     log.debug("commentPair, key={}, value={}", key, value);
                 }
             }
@@ -167,42 +167,48 @@ public class CommentHelper {
         return key;
     }
 
-    private static String getCommentContent(String content) {
+    private static CommentObj getCommentContent(String content) {
         if (StringUtils.isEmpty(content)) {
-            return "";
+            return null;
         }
         String[] lines = content.split("\r\n");
         if (lines.length == 1) {
             lines = content.split("\n");
         }
-        StringBuilder sb = new StringBuilder();
+        StringBuilder shortSb = new StringBuilder();
+        StringBuilder wholeSb = new StringBuilder();
         for (String line : lines) {
             line = line.replaceAll("\\*", "").replaceAll("<[.[^>]]*>", "").trim();
             if (line.startsWith("@")) {
                 // 忽略所有 @ 之后的注释
                 break;
             }
-            if (sb.length() > 0) {
+            if (shortSb.length() == 0) {
                 // 只取首行注释
-                break;
+                shortSb.append(line);
             }
-            sb.append(line);
+            wholeSb.append(line);
         }
-        return sb.toString();
+        if (StringUtils.isEmpty(shortSb.toString()) || StringUtils.isEmpty(wholeSb.toString())) {
+            return null;
+        }
+        return new CommentObj(shortSb.toString(), wholeSb.toString());
     }
 
     private static String getCommentKey(String key) {
         return key.replaceFirst("/", "");
     }
 
-    public static String getComment(Class cls, String key) {
+    public static CommentObj getComment(Class cls, String key) {
         List<CommentPair> comments = commentMap.get(cls.getName());
-        String result = "";
+        CommentObj result = null;
         if (CollectionUtils.isNotEmpty(comments)) {
             Optional<CommentPair> comment = comments.stream().filter(x -> x.getKey().equals(key)).findFirst();
-            result = comment.isPresent() ? comment.get().getCommnent() : "";
+            if (comment.isPresent()) {
+                result = comment.get().getComment();
+            }
         }
-        if (StringUtils.isEmpty(result) && cls.getSuperclass() != null) {
+        if (result == null && cls.getSuperclass() != null) {
             return getComment(cls.getSuperclass(), key);
         }
         return result;
@@ -231,5 +237,17 @@ public class CommentHelper {
             return "";
         }
         return "(" + sb.toString() + ")";
+    }
+
+    public static boolean isOptionalParam(CommentObj comment) {
+        if (comment == null || StringUtils.isEmpty(comment.getWholeComment())) {
+            return false;
+        }
+        if (comment.getWholeComment().contains("不需要前端提供")
+                || comment.getWholeComment().contains("非必须") ||
+                comment.getWholeComment().contains("非必需")) {
+            return true;
+        }
+        return false;
     }
 }

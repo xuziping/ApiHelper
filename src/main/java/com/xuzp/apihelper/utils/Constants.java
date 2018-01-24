@@ -61,6 +61,7 @@ public interface Constants {
     String PAGABLE_CLASS_NAME = "pagableClassName";
     String TEMPLATE_PATH = "templatePath";
     String MOCK_DATA_PATH = "mockDataPath";
+    String SHOW_JSON_COMMENT = "showJSONComment";
 
     String TEMPLATE_DEFAULT_PATH = "template";
 
@@ -73,7 +74,7 @@ public interface Constants {
     int PORT_80 = 80;
 
     String API_DOC_PARAM_LIST_TEMPLATE = " * @apiParam {`PARAM_TYPE`} `PARAM_NAME` `PARAM_DESC`";
-    String MARKDOWN_PARAM_LIST_TEMPLATE = "| `PARAM_NAME` | `PARAM_TYPE` | `PARAM_DESC` | ";
+    String MARKDOWN_PARAM_LIST_TEMPLATE = "| `PARAM_NAME` | `PARAM_TYPE` | `PARAM_DESC` | `PARAM_IS_OPTIONAL`|";
 
     String RESPONSE_JSON_FTL = "response_json.ftl";
     String HELP_FTL = "help.ftl";
@@ -87,6 +88,7 @@ public interface Constants {
     String PARAM_APIMETHOD = "APIMETHOD";
     String PARAM_LABELNAME = "LABELNAME";
     String PARAM_PARAM_LIST = "PARAM_LIST";
+    String PARAM_PARAM_LIST_STRING = "PARAM_LIST_STRING";
     String PARAM_REQUEST_JSON = "REQUEST_JSON";
     String PARAM_RESPONSE_JSON = "RESPONSE_JSON";
 }
