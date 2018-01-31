@@ -181,7 +181,7 @@ Sometimes, it is possible that you want to design your own ApiDoc or Markdown te
 	</#if>
 	<#if PARAM_LIST??>
 	 <#list PARAM_LIST as param>
-	 * @apiParam ${param.type} ${param.name} ${param.desc}
+	 * @apiParam {${param.type}} ${param.name} ${param.desc}
 	 </#list>
 	</#if>
 	<#if REQUEST_JSON??>
