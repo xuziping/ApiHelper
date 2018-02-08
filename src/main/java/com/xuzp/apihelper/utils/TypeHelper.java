@@ -112,6 +112,12 @@ public class TypeHelper {
     }
 
     /**
+     * 判断是不是基础数组类型
+     */
+    public static boolean isArray(Type type) {
+        return type.getTypeName().endsWith("[]");
+    }
+    /**
      * 判断是不是分页包装类
      */
     public static boolean isPagableType(Type type) {

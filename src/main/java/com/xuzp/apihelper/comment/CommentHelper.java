@@ -60,7 +60,7 @@ public class CommentHelper {
     /**
      * 获取参数名称
      */
-    public static String getParameterName(Class cls, Method method) {
+    public static String getParameterName(Class cls, Method method, int index) {
         StringBuilder sb = new StringBuilder();
         CompilationUnit compilationUnit = compilationUnitMap.get(cls.getName());
         if (compilationUnit != null) {
@@ -68,7 +68,8 @@ public class CommentHelper {
                 compilationUnit.getChildNodes().stream().filter(x -> x instanceof ClassOrInterfaceDeclaration).findFirst().ifPresent(x -> {
                             x.getChildNodes().stream().filter(xm -> xm instanceof MethodDeclaration).forEach(m -> {
                                 if (((MethodDeclaration) m).getNameAsString().equalsIgnoreCase(method.getName())) {
-                                    m.getChildNodes().stream().filter(mp -> mp instanceof Parameter).findFirst().ifPresent(mp -> {
+                                    m.getChildNodes().stream().filter(mp -> mp instanceof Parameter)
+                                            .skip(index).findFirst().ifPresent(mp -> {
                                         sb.append(((Parameter) mp).getNameAsString());
                                     });
                                 }
@@ -200,16 +201,17 @@ public class CommentHelper {
     }
 
     public static CommentObj getComment(Class cls, String key) {
+        String ckey = getCommentKey(key);
         List<CommentPair> comments = commentMap.get(cls.getName());
         CommentObj result = null;
         if (CollectionUtils.isNotEmpty(comments)) {
-            Optional<CommentPair> comment = comments.stream().filter(x -> x.getKey().equals(key)).findFirst();
+            Optional<CommentPair> comment = comments.stream().filter(x -> x.getKey().equals(ckey)).findFirst();
             if (comment.isPresent()) {
                 result = comment.get().getComment();
             }
         }
         if (result == null && cls.getSuperclass() != null) {
-            return getComment(cls.getSuperclass(), key);
+            return getComment(cls.getSuperclass(), ckey);
         }
         return result;
     }

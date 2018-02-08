@@ -14,6 +14,11 @@ public interface Constants {
     String ENUM = "Enum";
     String URL_SPLIT = "/";
     String LF = "\n";
+    String STRING_ARRAY_TYPE_NAME = "java.lang.String[]";
+    String LONG_ARRAY_TYPE_NAME= "java.lang.Long[]";
+    String INTEGER_ARRAY_TYPE_NAME= "java.lang.Integer[]";
+    String LONG_ARRAY_BASIC_TYPE_NAME = "long[]";
+    String INT_ARRAY_BASIC_TYPE_NAME = "int[]";
     String STRING_LIST_TYPE_NAME = "java.util.List<java.lang.String>";
     String INTEGER_LIST_TYPE_NAME = "java.util.List<java.lang.Integer>";
     String LONG_LIST_TYPE_NAME = "java.util.List<java.lang.Long>";

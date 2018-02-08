@@ -112,11 +112,16 @@ public class MockDataProvider {
         } else if (typeName.equalsIgnoreCase(TypeHelper.fixTypeName(Boolean.class.getName()))
                 || typeName.equals(TypeHelper.fixTypeName(boolean.class.getName()))) {
             return mockDataMap.get(DataType.BOOLEAN);
-        } else if (STRING_LIST_TYPE_NAME.equals(type.getTypeName())) {
+        } else if (STRING_LIST_TYPE_NAME.equals(type.getTypeName())
+                || STRING_ARRAY_TYPE_NAME.equals(type.getTypeName())){
             return mockDataMap.get(DataType.LIST_STRING);
-        } else if (LONG_LIST_TYPE_NAME.equals(type.getTypeName())) {
+        } else if (LONG_LIST_TYPE_NAME.equals(type.getTypeName())
+                || LONG_ARRAY_TYPE_NAME.equals(type.getTypeName())
+                || LONG_ARRAY_BASIC_TYPE_NAME.equals(type.getTypeName())) {
             return mockDataMap.get(DataType.LIST_LONG);
-        } else if (INTEGER_LIST_TYPE_NAME.equals(type.getTypeName())) {
+        } else if (INTEGER_LIST_TYPE_NAME.equals(type.getTypeName())
+                || INTEGER_ARRAY_TYPE_NAME.equals(type.getTypeName())
+                || INT_ARRAY_BASIC_TYPE_NAME.equals(type.getTypeName())) {
             return mockDataMap.get(DataType.LIST_INTEGER);
         } else if (TypeHelper.isEnumType(type)) {
             try {

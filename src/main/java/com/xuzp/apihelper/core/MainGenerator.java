@@ -177,17 +177,32 @@ public class MainGenerator {
                 }
                 log.debug("菜单名: {}", api.getLabelName());
 
+                // 处理参数
                 if (method.getParameterTypes() != null && method.getParameterTypes().length > 0) {
-                    Parameter parameter = method.getParameters()[0];
-                    log.debug("参数值: {} - {}", parameter.getParameterizedType(), parameter.getName());
-                    List<Param> params = collectTypeInfo(parameter.getParameterizedType(), 0, true);
-                    if (CollectionUtils.isNotEmpty(params)) {
-                        String paramName = CommentHelper.getParameterName(cls, method);
-                        params.stream().filter(x -> StringUtils.isBlank(x.getName())).forEach(x -> {
-                            x.setName(StringUtils.isNotEmpty(paramName) ? paramName : parameter.getName());
-                        });
+                    if (method.getParameters().length > 1) {
+                        List<Param> params = Lists.newArrayList();
+                        for(int i = 0; i < method.getParameters().length; i++) {
+                            Parameter parameter = method.getParameters()[i];
+                            Param param = new Param();
+                            param.setName(CommentHelper.getParameterName(cls, method, i));
+                            param.setType(parameter.getParameterizedType());
+                            param.setDesc("");
+                            Type paramType = parameter.getParameterizedType();
+                            if((!TypeHelper.isBasicType(paramType) ||
+                                    TypeHelper.isArray(paramType))
+                                    && !TypeHelper.isMultipartFile(paramType)
+                                    && !TypeHelper.isEnumType(paramType)
+                                    ) {
+                                param.setChildren(processParam(parameter, cls, method, i));
+                            }
+                            params.add(param);
+                        }
+                        api.setParams(params);
+                    } else {
+                        Parameter parameter = method.getParameters()[0];
+                        List<Param> params =  processParam(parameter, cls, method, 0);
+                        api.setParams(params);
                     }
-                    api.setParams(params);
                 } else {
                     log.debug("没有参数");
                 }
@@ -214,6 +229,18 @@ public class MainGenerator {
             }
         }
         return methodApiObjs;
+    }
+
+    private List<Param> processParam(Parameter parameter, Class cls, Method method, int index) throws Exception{
+        log.debug("参数值: {} - {}", parameter.getParameterizedType(), parameter.getName());
+        List<Param> params = collectTypeInfo(parameter.getParameterizedType(), 0, true);
+        if (CollectionUtils.isNotEmpty(params)) {
+            String paramName = CommentHelper.getParameterName(cls, method, index);
+            params.stream().filter(x -> StringUtils.isBlank(x.getName())).forEach(x -> {
+                x.setName(StringUtils.isNotEmpty(paramName) ? paramName : parameter.getName());
+            });
+        }
+        return params;
     }
 
     /**

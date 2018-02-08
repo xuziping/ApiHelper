@@ -9,8 +9,8 @@ public class ParamVO {
 
     private String name;
     private String type;
-    private Boolean isOptional;
-    private String desc;
+    private Boolean isOptional = Boolean.FALSE;
+    private String desc = "";
 
     public String getName() {
         return name;

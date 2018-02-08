@@ -240,7 +240,7 @@ public abstract class BaseTemplate implements ITemplate {
                 paramVO.setType(TypeHelper.fixTypeName(param.getType().getTypeName()));
                 paramVO.setName(prefixName + param.getName());
                 paramVO.setDesc(param.getDesc());
-                paramVO.setOptional(param.getOptional());
+                paramVO.setOptional(param.getOptional()!=null?param.getOptional():Boolean.FALSE);
                 results.add(paramVO);
                 if (CollectionUtils.isNotEmpty(param.getChildren())) {
                     processParamList(param.getChildren(), results, param.getName() + ".");
