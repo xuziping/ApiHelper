@@ -158,7 +158,6 @@ public class ApiHelperProperties {
         this.templatePath = templatePath;
     }
 
-
     public String getMockDataPath() {
         return mockDataPath;
     }

@@ -1,6 +1,7 @@
 package com.xuzp.apihelper.core;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.xuzp.apihelper.comment.CommentHelper;
 import com.xuzp.apihelper.comment.CommentObj;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -163,7 +165,7 @@ public class MainGenerator {
                 }
                 log.debug("路径: {}", path);
                 api.setPath(path);
-                api.setName(apiGroup + File.separator + path);
+                api.setName(apiGroup + File.separator + path + File.separator + apimethod);
 
                 CommentObj commentObj = CommentHelper.getComment(cls, path);
                 String description = commentObj != null ? commentObj.getShortComment() : "";
@@ -181,18 +183,13 @@ public class MainGenerator {
                 if (method.getParameterTypes() != null && method.getParameterTypes().length > 0) {
                     if (method.getParameters().length > 1) {
                         List<Param> params = Lists.newArrayList();
-                        for(int i = 0; i < method.getParameters().length; i++) {
+                        for (int i = 0; i < method.getParameters().length; i++) {
                             Parameter parameter = method.getParameters()[i];
                             Param param = new Param();
                             param.setName(CommentHelper.getParameterName(cls, method, i));
                             param.setType(parameter.getParameterizedType());
                             param.setDesc("");
-                            Type paramType = parameter.getParameterizedType();
-                            if((!TypeHelper.isBasicType(paramType) ||
-                                    TypeHelper.isArray(paramType))
-                                    && !TypeHelper.isMultipartFile(paramType)
-                                    && !TypeHelper.isEnumType(paramType)
-                                    ) {
+                            if ((TypeHelper.isComplexType(parameter.getParameterizedType()))) {
                                 param.setChildren(processParam(parameter, cls, method, i));
                             }
                             params.add(param);
@@ -200,13 +197,13 @@ public class MainGenerator {
                         api.setParams(params);
                     } else {
                         Parameter parameter = method.getParameters()[0];
-                        List<Param> params =  processParam(parameter, cls, method, 0);
+                        List<Param> params = processParam(parameter, cls, method, 0);
                         api.setParams(params);
                     }
                 } else {
                     log.debug("没有参数");
                 }
-
+//                Class cl = CommentHelper.getReturnClass(cls, method);
                 // 支持泛型ResultBase<T> 和 void及基础类型
                 Type returnType = TypeHelper.isVoid(method.getReturnType()) ||
                         TypeHelper.isBasicType(method.getReturnType()) ? method.getReturnType() :
@@ -214,7 +211,7 @@ public class MainGenerator {
                 if (TypeHelper.isBasicType(returnType) ||
                         TypeHelper.isVoid(returnType)) {
                     log.debug("返回值: 基础数据类型 {}", returnType.getTypeName());
-                    Param param = new Param(returnType, null, null, null, null,Boolean.FALSE );
+                    Param param = new Param(returnType, null, null, null, null, Boolean.FALSE);
                     param.setBasicType(true);
                     api.setReturns(Lists.newArrayList(param));
                     api.setIsCollectionReturnType(Boolean.FALSE);
@@ -231,7 +228,7 @@ public class MainGenerator {
         return methodApiObjs;
     }
 
-    private List<Param> processParam(Parameter parameter, Class cls, Method method, int index) throws Exception{
+    private List<Param> processParam(Parameter parameter, Class cls, Method method, int index) throws Exception {
         log.debug("参数值: {} - {}", parameter.getParameterizedType(), parameter.getName());
         List<Param> params = collectTypeInfo(parameter.getParameterizedType(), 0, true);
         if (CollectionUtils.isNotEmpty(params)) {
@@ -247,6 +244,8 @@ public class MainGenerator {
      * 收集参数类型。对于List包装的非基本类型，递归收集
      */
     private List<Param> collectTypeInfo(Type type, int level, boolean isParam) throws Exception {
+
+        // 递归超过极限值
         if (level > MAX_RECURSION) {
             log.warn("递归达到极限值，怀疑参数循环引用");
             return Lists.newArrayList(
@@ -254,47 +253,72 @@ public class MainGenerator {
                             "怀疑参数循环引用", null, Boolean.FALSE));
         }
 
-        if (type instanceof ParameterizedType) {
-            Class cls = (((ParameterizedTypeImpl) type).getRawType());
-            if (TypeHelper.isCollection(cls)) {
-                Type child = ((ParameterizedTypeImpl) type).getActualTypeArguments()[0];
-                return collectTypeInfo(child, level + 1, isParam);
-            }
-        }
+        // 参数是Spring的MultpartFile对象
         if (TypeHelper.isMultipartFile(type)) {
             return Lists.newArrayList(
                     new Param(type, "", "上传文件", null, null, Boolean.TRUE));
         }
+
+        // 参数是基础类型
         if (TypeHelper.isBasicType(type)) {
             return Lists.newArrayList(
                     new Param(type, "", "", null, null, Boolean.TRUE));
         }
+
         Class cls = null;
-        try {
-            String typeName = type.getTypeName();
-            int i = typeName.indexOf("<");
-            if (i != -1) {
-                typeName = typeName.substring(0, i);
+        Type[] actualTypeArgs = null;
+        if (type instanceof ParameterizedType) {
+            ParameterizedTypeImpl pType = ((ParameterizedTypeImpl) type);
+            cls = pType.getRawType();
+            actualTypeArgs = pType.getActualTypeArguments();
+
+            // 参数是一个集合
+            if (TypeHelper.isCollection(cls)) {
+                if (pType.getActualTypeArguments() != null && pType.getActualTypeArguments().length == 1) {
+                    Type child = pType.getActualTypeArguments()[0];
+                    return collectTypeInfo(child, level + 1, isParam);
+                } else {
+                    log.error("集合中存在不止一个泛型, 跳过处理， {}", pType.getActualTypeArguments());
+                    return null;
+                }
             }
-            cls = Class.forName(typeName);
-        } catch (ClassNotFoundException e) {
-            log.error("Not found class: {}", type.getTypeName());
-            cls = Object.class;
         }
 
-        if (TypeHelper.isPagableType(cls)) {
+        if (cls == null) {
             try {
-                int start = type.getTypeName().indexOf("<");
-                if (start != -1) {
-                    String containedType = type.getTypeName().substring(start + 1, type.getTypeName().length() - 1);
-                    Class containedClass = Class.forName(containedType);
-                    return getPagableParams(containedClass);
+                String typeName = type.getTypeName();
+                int i = typeName.indexOf("<");
+                if (i != -1) {
+                    typeName = typeName.substring(0, i);
                 }
-            } catch (Exception e) {
-                log.error("Not get pagable class: {}", type.getTypeName());
+                cls = Class.forName(typeName);
+            } catch (ClassNotFoundException e) {
+                log.error("Not found class: {}", type.getTypeName());
+                cls = Object.class;
             }
-            return getPagableParams(null);
         }
+
+        TypeVariable[]  typeVariables = cls.getTypeParameters();
+        Map<String, Type> typeMap = Maps.newHashMap();
+        if(typeVariables != null && actualTypeArgs!=null && typeVariables.length == actualTypeArgs.length) {
+            for(int i=0; i< typeVariables.length; i++) {
+                typeMap.put(typeVariables[i].getTypeName(), actualTypeArgs[i]);
+            }
+        }
+
+//        if (TypeHelper.isPagableType(cls)) {
+//            try {
+//                int start = type.getTypeName().indexOf("<");
+//                if (start != -1) {
+//                    String containedType = type.getTypeName().substring(start + 1, type.getTypeName().length() - 1);
+//                    Class containedClass = Class.forName(containedType);
+//                    return getPagableParams(containedClass);
+//                }
+//            } catch (Exception e) {
+//                log.error("Not get pagable class: {}", type.getTypeName());
+//            }
+//            return getPagableParams(null);
+//        }
 
         if (!TypeHelper.isVoid(cls)) {
             Set<Field> fields = Sets.newHashSet();
@@ -306,41 +330,59 @@ public class MainGenerator {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
+
                 Param param = new Param();
                 param.setName(field.getName());
-                param.setType(field.getGenericType());
+
+                Type fieldType = field.getGenericType();
+                fieldType = typeMap.get(fieldType.getTypeName());
+                if (fieldType == null) {
+                    fieldType = field.getGenericType();
+                }
+
+                Type[] fieldActualTypeArgs = null;
+                if (fieldType instanceof ParameterizedType) {
+                    ParameterizedType fieldPType = (ParameterizedType) fieldType;
+                    fieldActualTypeArgs = fieldPType.getActualTypeArguments();
+                    if(fieldActualTypeArgs != null && fieldActualTypeArgs.length > 0) {
+                        for (int i=0; i<fieldActualTypeArgs.length; i++) {
+                            fieldActualTypeArgs[i] = typeMap.get(fieldActualTypeArgs[i].getTypeName());
+                            if(fieldActualTypeArgs[i] == null) {
+                                fieldActualTypeArgs[i] =  fieldPType.getActualTypeArguments()[i];
+                            }
+                        }
+                    }
+                    Type fieldRawType  = fieldPType.getRawType();
+                    param.setType(fieldRawType);
+                } else {
+                    param.setType(fieldType);
+                }
 
                 CommentObj commentObj = CommentHelper.getComment(cls, field.getName());
                 param.setDesc(commentObj != null ? commentObj.getShortComment() : "");
+                param.setOptional(CommentHelper.isOptionalParam(commentObj));
                 params.add(param);
                 log.debug(field.getGenericType().getTypeName() + " - " + field.getName());
 
-                param.setOptional(CommentHelper.isOptionalParam(commentObj));
-
                 /** 处理集合包装类型字段，如List等 */
                 if (TypeHelper.isCollection(field.getType())) {
-                    Type childType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                    Type childType = fieldActualTypeArgs[0];
                     if (!TypeHelper.isBasicType(childType)) {
                         List<Param> children = collectTypeInfo(childType, level + 1, isParam);
                         param.setChildren(children);
                     }
                 }
-                /** 处理Map类型字段 */
-//                else if (TypeHelper.isMap(field.getType())) {
-//                    Type keyType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-//                    Type valueType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[1];
-//                }
                 /** 处理翻页包装类字段，本项目中包装类是 Page */
-                else if (TypeHelper.isPagableType(field.getType())) {
-                    if (isParam) {
-                        param.setChildren(getPagableParams(field.getType()));
-                    } else {
-                        param.setChildren(getPagableReturns());
-                        Type childType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-                        List<Param> children = collectTypeInfo(childType, level + 1, isParam);
-                        param.getChildren().addAll(children);
-                    }
-                }
+//                else if (TypeHelper.isPagableType(field.getType())) {
+//                    if (isParam) {
+//                        param.setChildren(getPagableParams(field.getType()));
+//                    } else {
+//                        param.setChildren(getPagableReturns());
+//                        Type childType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+//                        List<Param> children = collectTypeInfo(childType, level + 1, isParam);
+//                        param.getChildren().addAll(children);
+//                    }
+//                }
                 /** 处理非枚举类型字段以及非基本类型字段的自定义对象字段 */
                 else if (!TypeHelper.isEnumType(field.getType()) && !TypeHelper.isBasicType(field.getGenericType())) {
                     List<Param> children = collectTypeInfo(field.getGenericType(), level + 1, isParam);
@@ -360,28 +402,28 @@ public class MainGenerator {
         return null;
     }
 
-    /**
-     * 组装翻页请求参数
-     */
-    protected List<Param> getPagableParams(Class cls) throws Exception {
-        List<Param> params = Lists.newArrayList(new Param(Integer.class, "start", "起始记录", "1", null, Boolean.TRUE),
-                new Param(Integer.class, "pageIndex", "第几页", "1", null, Boolean.TRUE),
-                new Param(Integer.class, "limit", "最大查询数", "20", null, Boolean.TRUE)
-        );
-        if (cls != null) {
-            Param condition = new Param(Object.class, "condition", "查询条件", null,
-                    collectTypeInfo(cls, 1, true), Boolean.TRUE);
-            params.add(condition);
-        }
-        return params;
-    }
+//    /**
+//     * 组装翻页请求参数
+//     */
+//    protected List<Param> getPagableParams(Class cls) throws Exception {
+//        List<Param> params = Lists.newArrayList(new Param(Integer.class, "start", "起始记录", "1", null, Boolean.TRUE),
+//                new Param(Integer.class, "pageIndex", "第几页", "1", null, Boolean.TRUE),
+//                new Param(Integer.class, "limit", "最大查询数", "20", null, Boolean.TRUE)
+//        );
+//        if (cls != null) {
+//            Param condition = new Param(Object.class, "condition", "查询条件", null,
+//                    collectTypeInfo(cls, 1, true), Boolean.TRUE);
+//            params.add(condition);
+//        }
+//        return params;
+//    }
 
-    /**
-     * 组装翻页返回参数
-     */
-    protected List<Param> getPagableReturns() {
-        return Lists.newArrayList(new Param(Integer.class, "total", "总记录数", "32", null, Boolean.FALSE));
-    }
+//    /**
+//     * 组装翻页返回参数
+//     */
+//    protected List<Param> getPagableReturns() {
+//        return Lists.newArrayList(new Param(Integer.class, "total", "总记录数", "32", null, Boolean.FALSE));
+//    }
 
     /**
      * 取注释RequestMapping的值

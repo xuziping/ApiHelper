@@ -36,10 +36,6 @@ public class TypeHelper {
             type = type.substring(0, i);
         }
 
-        // 支持翻页对象
-        if (type.endsWith(DOT + PAGABLE_TYPE)) {
-            return PAGABLE_TYPE;
-        }
         if (type.indexOf(DOT) != -1) {
             type = type.substring(type.lastIndexOf(DOT) + 1);
         }
@@ -91,6 +87,7 @@ public class TypeHelper {
      * 判断类型是否是基础类型
      */
     public static boolean isBasicType(Type param) {
+        String fixedParamName = fixTypeName(param.getTypeName());
         return Lists
                 .newArrayList(Integer.class.getName(), String.class.getName(), Double.class.getName(),
                         Float.class.getName(), Long.class.getName(), Boolean.class.getName(), Date.class.getName(),
@@ -101,7 +98,7 @@ public class TypeHelper {
                         float[].class.getName(), long[].class.getName(), boolean[].class.getName(), BigDecimal.class.getName(),
                         "?")
                 .stream().map(TypeHelper::fixTypeName)
-                .anyMatch(x -> x.equalsIgnoreCase(fixTypeName(param.getTypeName())));
+                .anyMatch(x -> x.equalsIgnoreCase(fixedParamName));
     }
 
     /**
@@ -136,5 +133,16 @@ public class TypeHelper {
         if (cls.getSuperclass() != null) {
             getAllFields(cls.getSuperclass(), allFields);
         }
+    }
+
+    /**
+     * 判断是否复杂类型
+     * 除基本数据类型，枚举，Spring文件上传对象之外的类型认为是复杂类型，包括列表，数组，对象等
+     */
+    public static boolean isComplexType(Type type){
+        return (!TypeHelper.isBasicType(type) ||
+                TypeHelper.isArray(type))
+                && !TypeHelper.isMultipartFile(type)
+                && !TypeHelper.isEnumType(type);
     }
 }

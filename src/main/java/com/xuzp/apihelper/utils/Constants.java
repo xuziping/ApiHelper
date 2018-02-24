@@ -27,7 +27,6 @@ public interface Constants {
     String OBJECT_TYPE_NAME = "java.lang.Object";
     String MAP_TYPE_NAME = "java.util.Map";
     String ENCODING = "UTF-8";
-    String PAGABLE_TYPE = "Page";
     String DOT = ".";
     String SPLIT_MARK = ";";
     String COMMENT_MARK = "*";

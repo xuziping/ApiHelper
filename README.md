@@ -111,12 +111,6 @@ Generate API documents including ApiDoc and Markdown formats. Also generate Post
     # NOTICE: Program would use "http://127.0.0.1:8080" by default.		
 	requestURL=http://www.tcc.com
 
-    # Optional setting
-	# It is the class name of the pagable container class.
-	# NOTICE: Program would use "Page" by default.		
-	pagableClassName=Page
-
-
 
 Here are some examples:
 
@@ -133,7 +127,6 @@ Here are some examples:
 	# Example
     modulePath=D:/workspace/tcc
 	classPath=D:/repository/xxx.jar;D:/project2/target/classes
-	pagableClassName=PageContainer
 	requestURL=http://localhost:8070	
 	template=template
 

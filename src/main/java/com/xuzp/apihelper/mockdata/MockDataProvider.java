@@ -196,7 +196,7 @@ public class MockDataProvider {
                     sb.append("\"" + field.getName() + "\": " + mockValue(field.getGenericType(), level + 1));
                 }
             }
-            return sb.length() > 0 ? sb.toString() : "{}";
+            return sb.length() > 0 ? "{" + sb.toString() + "}": "{}";
         }
 
         return "目前无法解析" + type.getTypeName();
