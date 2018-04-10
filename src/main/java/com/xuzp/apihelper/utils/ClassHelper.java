@@ -115,7 +115,7 @@ public class ClassHelper {
                 Class cls = classloader.loadClass(className);
                 log.info("通过文件名加载类成功，class: {}", className);
                 classSet.add(cls);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("通过文件名加载类出错，请检查它的class文件是否存在：file: {}， exception: {}", file.getAbsolutePath(), e);
             }
         }

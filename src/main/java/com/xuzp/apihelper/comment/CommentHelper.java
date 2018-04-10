@@ -287,7 +287,10 @@ public class CommentHelper {
     }
 
     private static String getCommentKey(String key) {
-        return key.replaceFirst("/", "");
+        if (key.startsWith("/")) {
+            return key.substring(1);
+        }
+        return key;
     }
 
     public static CommentObj getComment(Class cls, String key) {

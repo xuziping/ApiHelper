@@ -205,9 +205,17 @@ public class MainGenerator {
                 }
 //                Class cl = CommentHelper.getReturnClass(cls, method);
                 // 支持泛型ResultBase<T> 和 void及基础类型
-                Type returnType = TypeHelper.isVoid(method.getReturnType()) ||
-                        TypeHelper.isBasicType(method.getReturnType()) ? method.getReturnType() :
-                        ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
+                Type returnType = null;
+                if (TypeHelper.isVoid(method.getReturnType()) || TypeHelper.isBasicType(method.getReturnType())) {
+                    returnType = method.getReturnType();
+                } else {
+                    if (method.getGenericReturnType() instanceof ParameterizedType) {
+                        returnType = ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
+                    } else {
+                        returnType = method.getGenericReturnType();
+                    }
+                }
+
                 if (TypeHelper.isBasicType(returnType) ||
                         TypeHelper.isVoid(returnType)) {
                     log.debug("返回值: 基础数据类型 {}", returnType.getTypeName());
